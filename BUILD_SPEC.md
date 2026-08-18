@@ -119,7 +119,9 @@ Behaviour:
 Total landing scroll budget: **≤ 900vh**. Exceed it and users abandon before the CTA.
 
 ### S0 — Header
-Sticky. Transparent over hero → `--nc-paper` + `--shadow-sm` after 80px scrolled. Logo left, nav centre (desktop only), language toggle + cart icon right. Mobile: logo + hamburger + toggle. Height 64px mobile / 80px desktop.
+Sticky. Transparent over hero → `--nc-paper` + `--shadow-sm` after 80px scrolled. Logo left, nav centre (desktop only), language toggle right — **no cart icon** (§1 puts cart out of scope; an icon leading nowhere is worse than its absence). Mobile: logo + hamburger + toggle. Height 64px mobile / 80px desktop.
+
+Nav items, left to right: Features, **Our Products** (hover/tap dropdown: Diapers Line, Adult Diapers, Baby Wipes, Face Wipes), **Parenting Journey** (hover/tap dropdown: Conception, Pregnancy, New Born, Baby, Family), New Born, Find your size, FAQ. The two dropdown parents and all their children link to `#` placeholders — subpages don't exist yet. Desktop opens on hover (CSS `group-hover`, with a padded gap so the pointer can cross into the menu without it closing); mobile nests each as a `<details>` disclosure inside the hamburger menu.
 
 ### S1 — Hero
 Full-bleed `hero-mobile.webp` (<768px) / `hero-desktop.webp` (≥768px).
@@ -204,6 +206,8 @@ Content: `cutout-flatlay.webp` + copy on the umbilical cutout. Optional `newborn
 
 Copy: *"A gentle curve at the waistband leaves the healing navel untouched — designed for the first weeks, when skin is at its most delicate."*
 
+Below the copy: a full-bleed endless gallery — the navel cutout plus the S3–S8 product crops (already cleared for reuse, §1 non-negotiable 3), reused here rather than newly generated. Built as a CSS marquee: the item list is rendered twice back-to-back and the track animates `translateX(0)` → `translateX(-50%)` on an infinite linear loop, so the wrap point is invisible. Starts only once the gallery is on screen (`IntersectionObserver`), pauses on hover/touch, and `prefers-reduced-motion: reduce` disables the animation entirely.
+
 ⚠ If this section reads as continuous with S3–S8, you are making a false product claim. Verify the break is unmistakable at every breakpoint.
 
 ### S10 — Size selector
@@ -262,7 +266,7 @@ Lenis: desktop only, `lerp: 0.1`. Never on mobile — it fights native scroll an
 
 ## 7. Bilingual
 
-- Routes `/en` and `/bn`. **`bn` is default.**
+- Routes `/en` and `/bn`. **`en` is default** (overrides this spec's original `bn`-default call, per client request 2026-08-18 — the real audience remains Bangladeshi, this is a site-presentation choice, not a reversal of who the copy is written for).
 - Read locale via `next/root-params` (`import { lang } from 'next/root-params'`) — no prop-drilling.
 - Copy in `src/content/{en,bn}.json`, identical key structure. **Do not machine-translate Bangla** — the client writes it. Ship `bn.json` with English values and a `[BN]` prefix until supplied, so missing strings are visibly obvious rather than silently wrong.
 - `<html lang>` drives the DESIGN.md §2 line-height fork.
