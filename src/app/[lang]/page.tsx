@@ -23,6 +23,27 @@ export default async function Page() {
 
   const nav: NavItem[] = [
     { href: '#features', label: t.nav.features },
+    {
+      href: '#',
+      label: t.nav.products,
+      children: [
+        { href: '#', label: t.nav.productsDiaperLine },
+        { href: '#', label: t.nav.productsAdultDiapers },
+        { href: '#', label: t.nav.productsBabyWipes },
+        { href: '#', label: t.nav.productsFaceWipes },
+      ],
+    },
+    {
+      href: '#',
+      label: t.nav.journey,
+      children: [
+        { href: '#', label: t.nav.journeyConception },
+        { href: '#', label: t.nav.journeyPregnancy },
+        { href: '#', label: t.nav.journeyNewborn },
+        { href: '#', label: t.nav.journeyBaby },
+        { href: '#', label: t.nav.journeyFamily },
+      ],
+    },
     { href: '#newborn', label: t.nav.newborn },
     { href: '#sizes', label: t.nav.sizes },
     { href: '#faq', label: t.nav.faq },

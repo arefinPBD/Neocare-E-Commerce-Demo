@@ -9,6 +9,7 @@ import logo from '../../../public/brand/logo.svg';
 export interface NavItem {
   href: string;
   label: string;
+  children?: NavItem[];
 }
 
 /**
@@ -80,16 +81,41 @@ export function Header({
           {/* Desktop nav (S0: centre, desktop only). */}
           <nav aria-label={navLabel} className="hidden md:block">
             <ul className="flex items-center gap-1">
-              {nav.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    className="inline-flex min-h-11 items-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+              {nav.map((item) =>
+                item.children ? (
+                  <li key={item.label} className="group relative">
+                    <a
+                      href={item.href}
+                      className="inline-flex min-h-11 items-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                    >
+                      {item.label}
+                    </a>
+                    <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-[opacity,visibility] duration-[--dur-fast] ease-[--ease-out] group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                      <ul className="min-w-48 -translate-y-1 rounded-card border border-hairline bg-surface p-2 shadow-float transition-transform duration-[--dur-fast] ease-[--ease-out] group-hover:translate-y-0 group-focus-within:translate-y-0">
+                        {item.children.map((child) => (
+                          <li key={child.label}>
+                            <a
+                              href={child.href}
+                              className="flex min-h-11 items-center rounded-soft px-3 py-2 type-small text-fg transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                            >
+                              {child.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                ) : (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      className="inline-flex min-h-11 items-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ),
+              )}
             </ul>
           </nav>
 
@@ -121,16 +147,51 @@ export function Header({
                 className="absolute right-0 top-full mt-2 min-w-52 rounded-card border border-hairline bg-surface p-2 shadow-float"
               >
                 <ul>
-                  {nav.map((item) => (
-                    <li key={item.href}>
-                      <a
-                        href={item.href}
-                        className="flex min-h-11 items-center rounded-soft px-3 py-2 text-fg transition-colors duration-[--dur-fast] hover:bg-surface-brand"
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  ))}
+                  {nav.map((item) =>
+                    item.children ? (
+                      <li key={item.label}>
+                        <details className="[&[open]>summary>svg]:rotate-90">
+                          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-soft px-3 py-2 text-fg transition-colors duration-[--dur-fast] hover:bg-surface-brand [&::-webkit-details-marker]:hidden">
+                            {item.label}
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              aria-hidden="true"
+                              className="transition-transform duration-[--dur-base] ease-[--ease-out]"
+                            >
+                              <path d="M9 6l6 6-6 6" />
+                            </svg>
+                          </summary>
+                          <ul className="pl-3">
+                            {item.children.map((child) => (
+                              <li key={child.label}>
+                                <a
+                                  href={child.href}
+                                  className="flex min-h-11 items-center rounded-soft px-3 py-2 text-fg transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                                >
+                                  {child.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      </li>
+                    ) : (
+                      <li key={item.href}>
+                        <a
+                          href={item.href}
+                          className="flex min-h-11 items-center rounded-soft px-3 py-2 text-fg transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    ),
+                  )}
                 </ul>
               </nav>
             </details>
