@@ -137,10 +137,10 @@
     -webkit-text-size-adjust: 100%;
     /* Safety net, not a fix for anything specific: no section should ever be
        wider than the viewport, but if one is (an unconstrained flex/grid
-       child, a miscalculated carousel — see .carousel above for a case that
-       actually happened), this stops the whole page from scrolling sideways
-       instead of just that section. Doesn't affect an element's own internal
-       overflow-x:scroll, like the carousel's. */
+       child, a miscalculated marquee track — see .marquee-track below for a
+       case that actually happened), this stops the whole page from scrolling
+       sideways instead of just that section. Doesn't affect an element's own
+       internal overflow-x:hidden, like the marquee viewport's. */
     overflow-x: hidden;
   }
 
@@ -322,42 +322,40 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Carousel (S9 New Born gallery) — hand-ported from daisyUI's carousel
- * component, since this project has no daisyui dependency to pull it in as a
- * plugin. Source (as of writing):
- * https://raw.githubusercontent.com/saadeghi/daisyui/refs/heads/master/packages/daisyui/src/components/carousel.css
+ * Marquee (S9 New Born gallery) — an endless auto-scrolling row.
  *
- * A plain horizontally-scrolling flex row with CSS scroll-snap — no JS, no
- * autoplay. `prefers-reduced-motion: reduce` already forces
- * `scroll-behavior: auto !important` globally (see below), so the smooth-
- * scroll opt-in here only ever applies when motion is allowed.
+ * The track (see NewbornSection.tsx) holds the gallery items twice back to
+ * back. Animating translateX from 0 to -50% moves exactly one copy's width;
+ * the instant the first copy scrolls fully out of view, the second (pixel-
+ * identical) copy is sitting in its place, so the wrap-around is invisible —
+ * a real loop, not a reset/jump. `.marquee-viewport` clips it; padding lives
+ * there (not on the track) so it doesn't throw off the -50% midpoint.
+ *
+ * The track starts paused (NewbornSection.tsx sets animationPlayState via an
+ * IntersectionObserver + React state) so motion begins only once the gallery
+ * is actually on screen, not the moment the page loads below the fold.
  * ------------------------------------------------------------------------- */
-.carousel {
-  /* daisyUI's upstream rule is `inline-flex`, sized to fit ALL its content —
-     fine when the caller wraps it in something narrower, but here nothing
-     did, so the row (and overflow-x:scroll along with it) grew as wide as
-     every item summed, which dragged the whole page into horizontal scroll
-     instead of just this row. `flex` + `width:100%` caps it at the
-     container's width so only the row itself scrolls. */
-  display: flex;
+.marquee-viewport {
   width: 100%;
-  overflow-x: scroll;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .carousel {
-    scroll-behavior: smooth;
+.marquee-track {
+  width: max-content;
+  animation: marquee 18s linear infinite;
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    animation-play-state: paused !important;
   }
 }
-.carousel::-webkit-scrollbar {
-  display: none;
-}
-.carousel-item {
-  box-sizing: content-box;
-  display: flex;
-  flex: none;
-  scroll-snap-align: start;
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* ---------------------------------------------------------------------------

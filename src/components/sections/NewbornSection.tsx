@@ -15,8 +15,8 @@ import type { Dictionary } from '@/lib/i18n';
  * Cutout image (navel_cutout_d1.jpg -> public/newborn/cutout-flatlay.webp) is
  * rendered strictly in this S9 section per build spec §1 non-negotiable 4.
  *
- * The gallery below it is an auto-scrolling carousel — CSS in globals.css, hand-ported from
- * daisyUI since this project has no daisyui dependency — holding the plain
+ * The gallery below it is an endless auto-scrolling marquee — CSS keyframe
+ * animation in globals.css, gated on visibility below — holding the plain
  * navel cutout (the New Born–specific compliant shot) alongside the general
  * product photography already built into public/product: the full diaper
  * render and the five close-up crops used elsewhere in S3–S8. Reusing those
@@ -105,74 +105,36 @@ const GALLERY: {
   ];
 
 export function NewbornSection({ t }: { t: Dictionary }) {
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
 
-  // Duplicate gallery items to enable endless looping
+  // Duplicate gallery items once: a track holding two identical copies can
+  // animate from translateX(0) to translateX(-50%) forever — the moment the
+  // first copy scrolls fully out, the second (identical) copy is in exactly
+  // its place, so the loop point is invisible instead of a visible jump/reset.
   const displayItems = [...GALLERY, ...GALLERY];
-  const totalOriginal = GALLERY.length;
 
+  // Motion starts only once the gallery is actually on screen, not the
+  // instant the page loads off-screen below the fold.
   useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
+    const node = trackRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      setHasEntered(true);
       return;
     }
-
-    const interval = setInterval(() => {
-      if (isPaused) return;
-
-      const container = carouselRef.current;
-      if (!container || container.children.length === 0) return;
-
-      const children = Array.from(container.children) as HTMLElement[];
-      const containerRect = container.getBoundingClientRect();
-
-      // Measure total width of one full set of original items
-      const child0 = children[0];
-      const childN = children[GALLERY.length];
-      let loopWidth = 0;
-      if (child0 && childN) {
-        loopWidth = childN.offsetLeft - child0.offsetLeft;
-      }
-
-      // If we have scrolled past or onto the duplicate set, silently loop back
-      if (loopWidth > 0 && container.scrollLeft >= loopWidth - 5) {
-        container.scrollLeft -= loopWidth;
-      }
-
-      // Find active index relative to current viewport
-      let activeIndex = 0;
-      let minDiff = Infinity;
-
-      children.forEach((child, index) => {
-        const childRect = child.getBoundingClientRect();
-        const diff = Math.abs(childRect.left - containerRect.left);
-        if (diff < minDiff) {
-          minDiff = diff;
-          activeIndex = index;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setHasEntered(true);
+          observer.disconnect();
         }
-      });
-
-      const nextIndex = activeIndex + 1;
-
-      if (nextIndex < children.length) {
-        const targetChild = children[nextIndex];
-        if (targetChild) {
-          const targetChildRect = targetChild.getBoundingClientRect();
-          const targetScrollLeft =
-            container.scrollLeft + (targetChildRect.left - containerRect.left);
-          container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-        }
-      } else {
-        // Fallback: reset to start
-        container.scrollTo({ left: 0, behavior: 'smooth' });
-      }
-    }, 1500);
-
-    return () => clearInterval(interval);
-  }, [isPaused]);
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
@@ -195,33 +157,39 @@ export function NewbornSection({ t }: { t: Dictionary }) {
         </Reveal>
       </div>
 
-      {/* Full-bleed auto-scrolling endless horizontal gallery */}
+      {/* Full-bleed endless auto-scrolling gallery — see .marquee-track in
+       * globals.css for how the two-copy track loops seamlessly. */}
       <Reveal delayMs={80} className="mt-10">
-        <div
-          ref={carouselRef}
-          className="carousel gap-4 px-4 md:px-6"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
-          {displayItems.map((item, index) => (
-            <div
-              key={`${item.src}-${index}`}
-              className="hover-zoom carousel-item w-56 overflow-hidden rounded-card border border-hairline bg-surface shadow-card sm:w-64 md:w-72"
-            >
-              <Image
-                src={item.src}
-                alt={item.alt(t)}
-                width={item.width}
-                height={item.height}
-                sizes="(min-width: 768px) 288px, (min-width: 640px) 256px, 224px"
-                loading="lazy"
-                unoptimized={item.src.endsWith('.gif')}
-                className="aspect-[4/3] h-full w-full object-cover"
-              />
-            </div>
-          ))}
+        <div className="marquee-viewport overflow-hidden px-4 md:px-6">
+          <div
+            ref={trackRef}
+            className="marquee-track flex gap-4"
+            style={{
+              animationPlayState: hasEntered && !isPaused ? 'running' : 'paused',
+            }}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={() => setIsPaused(true)}
+            onTouchEnd={() => setIsPaused(false)}
+          >
+            {displayItems.map((item, index) => (
+              <div
+                key={`${item.src}-${index}`}
+                className="hover-zoom w-56 shrink-0 overflow-hidden rounded-card border border-hairline bg-surface shadow-card sm:w-64 md:w-72"
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt(t)}
+                  width={item.width}
+                  height={item.height}
+                  sizes="(min-width: 768px) 288px, (min-width: 640px) 256px, 224px"
+                  loading="lazy"
+                  unoptimized={item.src.endsWith('.gif')}
+                  className="aspect-[4/3] h-full w-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </Reveal>
     </section>
