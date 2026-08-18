@@ -169,7 +169,7 @@ export function NewbornSection({ t }: { t: Dictionary }) {
         // Fallback: reset to start
         container.scrollTo({ left: 0, behavior: 'smooth' });
       }
-    }, 3000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [isPaused]);

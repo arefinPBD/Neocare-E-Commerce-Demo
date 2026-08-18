@@ -4,8 +4,8 @@ import bn from '@/content/bn.json';
 export const LOCALES = ['bn', 'en'] as const;
 export type Locale = (typeof LOCALES)[number];
 
-/** BUILD_SPEC §7: bn is the default. */
-export const DEFAULT_LOCALE: Locale = 'bn';
+/** Overrides BUILD_SPEC §7 ("bn is the default") per client request 2026-08-18. */
+export const DEFAULT_LOCALE: Locale = 'en';
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
