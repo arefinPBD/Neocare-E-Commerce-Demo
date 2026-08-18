@@ -1,0 +1,124 @@
+/* NeoCare design tokens — DESIGN.md v1.0 §1-5, verbatim.
+ *
+ * This is the ONLY file in the project permitted to contain a hex literal.
+ * Components reference semantic tokens or Tailwind utilities mapped from them.
+ */
+
+:root {
+  /* ---------- §1 Colour: brand core ---------- */
+  --nc-green-900: #003a07; /* 13.6:1 on white */
+  --nc-green-800: #004e0a; /* 10.0:1 — packaging wordmark */
+  --nc-green-700: #0a6b18; /*  6.8:1 */
+  --nc-green-600: #009030; /*  3.9:1 — large text / icons / borders only */
+  --nc-sage-500: #629a7e; /*  3.3:1 — large text / icons / borders only */
+  --nc-sage-300: #8cb69a; /*  2.3:1 — decoration only */
+  --nc-mint-200: #b6e0c4; /*  1.5:1 — background only */
+  --nc-mint-100: #d2eee0; /*  1.2:1 — background only */
+  --nc-mint-50: #eff8f3;
+
+  /* ---------- §1 Accent — use sparingly ---------- */
+  --nc-orange-600: #e6461e; /*  4.5:1 */
+  --nc-orange-500: #f0461e; /*  3.8:1 — large text / icons / borders only */
+  --nc-gold-400: #fabe0a; /*  1.8:1 — decoration only */
+
+  /* ---------- §1 Neutrals ---------- */
+  --nc-ink-900: #141a16;
+  --nc-ink-700: #3a443e;
+  --nc-ink-500: #6b776f;
+  --nc-ink-300: #a8b2ac;
+  --nc-ink-100: #e3e8e5;
+  --nc-paper: #ffffff;
+  --nc-cream: #fbf9f5;
+
+  /* Supplied logo asset (public/brand/logo.svg) is drawn in this green, which
+     is NOT --nc-green-800. Kept as its own token so the discrepancy stays
+     visible rather than being silently reconciled. 5.35:1 on white. */
+  --nc-logo-green: #097b43;
+
+  /* ---------- §1 Semantic ---------- */
+  --color-text: var(--nc-ink-900);
+  --color-text-muted: var(--nc-ink-500);
+  --color-text-inverse: #ffffff;
+  --color-bg: var(--nc-paper);
+  --color-bg-alt: var(--nc-cream);
+  --color-bg-brand-soft: var(--nc-mint-50);
+  --color-primary: var(--nc-green-800);
+  --color-primary-hover: var(--nc-green-900);
+  --color-accent: var(--nc-orange-600);
+  --color-border: var(--nc-ink-100);
+  --color-focus: var(--nc-green-600);
+  --color-success: var(--nc-green-700);
+  --color-error: #b3261e;
+
+  /* ---------- §2 Typography ---------- */
+  /* The --font-*-src variables are injected by next/font in the root layout. */
+  --font-latin: var(--font-poppins), system-ui, sans-serif;
+  --font-bangla: var(--font-hind-siliguri), "Noto Sans Bengali", sans-serif;
+
+  --text-display: clamp(2.5rem, 6vw, 4.5rem);
+  --text-h1: clamp(2rem, 4.5vw, 3.25rem);
+  --text-h2: clamp(1.5rem, 3vw, 2.25rem);
+  --text-h3: clamp(1.25rem, 2vw, 1.5rem);
+  --text-body-lg: clamp(1.0625rem, 1.4vw, 1.1875rem);
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+
+  /* ---------- §3 Spacing — 4px base ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+  --space-40: 10rem;
+
+  --section-rhythm: clamp(4rem, 10vh, 8rem);
+  --container: 1200px;
+
+  /* ---------- §4 Radii, elevation, borders ---------- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(20 26 22 / 0.06);
+  --shadow-md: 0 4px 16px rgb(20 26 22 / 0.08);
+  --shadow-lg: 0 12px 40px rgb(20 26 22 / 0.1);
+
+  --border-hairline: 1px solid var(--color-border);
+
+  /* ---------- §5 Motion ---------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 600ms;
+
+  /* ---------- §7 Layout ---------- */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+
+/* §2 Line height differs by script. Bangla carries ascenders, descenders and
+   conjuncts that clip at Latin leading. Not optional polish. */
+[lang="en"] {
+  --leading-tight: 1.12;
+  --leading-normal: 1.55;
+  --font-active: var(--font-latin);
+  --prose-measure: 68ch;
+}
+
+[lang="bn"] {
+  --leading-tight: 1.38;
+  --leading-normal: 1.85;
+  --font-active: var(--font-bangla);
+  --prose-measure: 60ch;
+}

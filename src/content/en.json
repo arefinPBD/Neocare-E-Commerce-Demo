@@ -1,0 +1,180 @@
+{
+  "meta": {
+    "title": "NeoCare — Baby Diapers",
+    "description": "NeoCare belt-type baby diapers, made in Bangladesh by Incepta Hygiene & Hospicare Ltd."
+  },
+  "nav": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "home": "Home",
+    "features": "Features",
+    "newborn": "New Born",
+    "sizes": "Find your size",
+    "faq": "FAQ",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "logoAlt": "NeoCare Baby Diaper",
+    "switchLanguage": "Switch language"
+  },
+  "hero": {
+    "headline": "Gentle from the very first day",
+    "sub": "Belt-type baby diapers, made in Bangladesh by Incepta Hygiene & Hospicare Ltd.",
+    "cta": "Find your size",
+    "imageAlt": "A sleeping baby lying on a cream muslin blanket"
+  },
+  "trust": {
+    "maker": "Incepta Hygiene & Hospicare Ltd.",
+    "madeIn": "Made in Bangladesh",
+    "since": "[TODO: client] Trusted since —"
+  },
+  "product": {
+    "title": "Look closer",
+    "intro": "Five parts of the diaper, and what each one does.",
+    "featuresTitle": "The five features",
+    "imageAlt": "A NeoCare Medium diaper seen at an angle, showing the printed outer sheet, elastic waistband and hook-and-loop tab"
+  },
+  "features": {
+    "sap": {
+      "title": "Super Absorbent Polymer",
+      "body": "Locks moisture into the core and holds it there, so your baby's skin stays dry for longer.",
+      "imageAlt": "Close view of the diaper's front panel and printed waistband"
+    },
+    "cuff": {
+      "title": "Hydrophobic Leg Cuff",
+      "body": "A soft raised barrier around each leg that guides moisture inward instead of out.",
+      "imageAlt": "Close view of the raised elastic barrier running around the leg opening"
+    },
+    "ear": {
+      "title": "Elastic Back Ear",
+      "body": "Stretches as your baby moves and settles back, keeping the fit snug without pinching.",
+      "imageAlt": "Close view of the gathered elastic waistband at the back of the diaper"
+    },
+    "velcro": {
+      "title": "Adjustable Hook & Loop",
+      "body": "Refasten as often as you need. Check, adjust and re-close without wasting a diaper.",
+      "imageAlt": "Close view of the hook-and-loop fastening tab extended from the side panel"
+    },
+    "backsheet": {
+      "title": "Breathable Textile Back Sheet",
+      "body": "A cloth-like outer layer with thousands of micro-pores, letting air move through freely.",
+      "imageAlt": "Close view of the cloth-like outer sheet with its printed green dot pattern"
+    }
+  },
+  "newborn": {
+    "badge": "New Born · 0–4 kg",
+    "title": "Made for the first weeks",
+    "body": "A gentle curve at the waistband leaves the healing navel untouched — designed for the first weeks, when skin is at its most delicate.",
+    "note": "This feature is on the New Born size only.",
+    "imageAlt": "Close-up of NeoCare New Born diaper showing the U-shaped umbilical cord cutout at the waistband",
+    "imagePending": "[TODO: client] New Born product photography pending. No approved image of the umbilical cutout is available.",
+    "lifestyleAlt": "A parent sitting on a bed, resting a hand on their baby",
+    "galleryBaseAlt": "NeoCare diaper printed with a yellow chick character, front view",
+    "galleryWaistbandAlt": "Close-up of the NeoCare diaper waistband, printed with an orange kitten character",
+    "galleryCuffAlt": "Close-up of the NeoCare diaper's leg cuff ruffle",
+    "gallerySideAlt": "Close-up of the NeoCare diaper's side tab, printed with an orange kitten character",
+    "galleryFastenerAlt": "Close-up of the NeoCare diaper's fastening tab",
+    "galleryPrint1Alt": "NeoCare diaper with colorful print design",
+    "galleryPrint2Alt": "NeoCare diaper with character print design",
+    "galleryPrint3Alt": "NeoCare diaper with cartoon pattern design",
+    "galleryPrint4Alt": "NeoCare diaper with playful print pattern",
+    "galleryPrint5Alt": "NeoCare diaper with white base and cute print",
+    "galleryPrint6Alt": "NeoCare diaper with white soft top and printed design",
+    "galleryBacksheetAlt": "Close-up of the NeoCare diaper's outer backsheet pattern"
+  },
+  "sizes": {
+    "title": "Find your size",
+    "intro": "Move the slider to your baby's weight.",
+    "sliderLabel": "Baby's weight",
+    "unit": "kg",
+    "unitLong": "kilograms",
+    "recommended": "Recommended",
+    "alsoFits": "Also fits",
+    "packLabel": "Pack sizes",
+    "packUnit": "pcs",
+    "weightRange": "For {min}–{max} kg",
+    "confirmNote": "[TODO: client] Weight ranges taken from the live site. Please confirm.",
+    "names": {
+      "newBorn": "New Born",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "xl": "XL"
+    },
+    "packAlt": "NeoCare {size} pack"
+  },
+  "faq": {
+    "title": "Questions",
+    "items": [
+      {
+        "q": "Which size does my baby need?",
+        "a": "Use the size finder above — move the slider to your baby's weight and it will show the recommended size, along with any other size that also fits that weight."
+      },
+      {
+        "q": "How many pieces are in each pack?",
+        "a": "[TODO: client] Pack counts by size: New Born 20, Small 50, Medium 30 and 50, Large 50, XL 50. Please confirm."
+      },
+      {
+        "q": "How long does delivery take?",
+        "a": "[TODO: client] Existing terms say 3 working days inside Dhaka and 7 outside. Please confirm this is still accurate."
+      },
+      {
+        "q": "Is there a minimum order?",
+        "a": "[TODO: client] Existing terms say Tk. 500. Please confirm."
+      },
+      {
+        "q": "How do I pay? Is cash on delivery available?",
+        "a": "[TODO: client]"
+      },
+      {
+        "q": "Can I cancel or return an order?",
+        "a": "[TODO: client] Current policy: cancellable before receipt, not returnable after. Please confirm."
+      },
+      {
+        "q": "What makes NeoCare different from other diapers?",
+        "a": "NeoCare is made in Bangladesh by Incepta Hygiene & Hospicare Ltd. Every diaper is built from five parts: a super absorbent polymer core, hydrophobic leg cuffs, an elastic back ear, a refastenable hook-and-loop tab, and a breathable textile back sheet. The New Born size adds a curved waistband that leaves the healing navel untouched."
+      },
+      {
+        "q": "Is NeoCare safe for newborn skin?",
+        "a": "NeoCare is made for babies from birth. The layer against the skin is soft and cloth-like, the outer sheet is breathable, and the New Born size has a curved waistband so nothing presses on the healing navel. Change a diaper as soon as it is wet or soiled, and speak to your doctor if you notice any irritation."
+      },
+      {
+        "q": "What is the umbilical cord cutout, and which size has it?",
+        "a": "It is a gentle curve at the waistband that leaves the healing navel untouched. It is on the New Born size only."
+      },
+      {
+        "q": "Who makes NeoCare?",
+        "a": "NeoCare is made by Incepta Hygiene & Hospicare Ltd. in Bangladesh."
+      },
+      {
+        "q": "Where can I buy NeoCare offline?",
+        "a": "[TODO: client]"
+      },
+      {
+        "q": "How should I dispose of used diapers?",
+        "a": "Roll the used diaper inward, close it with the side tabs, and put it in a covered household bin. Please do not flush it — a diaper will block a toilet or drain."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Bring NeoCare home",
+    "body": "Choose the size that matches your baby's weight, then order a pack.",
+    "button": "Shop Now"
+  },
+  "footer": {
+    "tagline": "Baby Diaper",
+    "contactTitle": "Contact",
+    "phone": "[TODO: client — unconfirmed, found on the NeoCare Facebook page: 01976-362273]",
+    "email": "[TODO: client — unconfirmed: neocarebd@gmail.com]",
+    "address": "[TODO: client — unconfirmed: Shahid Tajuddin Ahmed Sarani, Tejgaon, Dhaka]",
+    "dbid": "[TODO: client — plan §1.4 records DBID as held]",
+    "socialTitle": "Follow",
+    "social": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "tiktok": "TikTok"
+    },
+    "copyright": "© 2026 Incepta Hygiene & Hospicare Ltd. All rights reserved.",
+    "demoNote": "Demo landing page. Shopping is not enabled."
+  }
+}

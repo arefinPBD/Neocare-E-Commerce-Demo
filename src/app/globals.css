@@ -1,26 +1,443 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Map DESIGN.md tokens into Tailwind's theme.
+ *
+ * BUILD_SPEC §3 says "map into Tailwind via theme.extend". Tailwind v4 has no
+ * JS config or theme.extend — `@theme` is the equivalent. `inline` emits var()
+ * references rather than copying resolved values, so the [lang] fork in
+ * tokens.css still applies at runtime.
+ *
+ * NOTE ON NAMING: DESIGN.md's semantic tokens (--color-text, --radius-lg,
+ * --shadow-md, --text-h1) live in the same CSS namespaces Tailwind v4 uses for
+ * its own theme keys. Declaring `--color-text: var(--color-text)` would be a
+ * self-reference and resolve to nothing. So Tailwind keys below use distinct,
+ * intent-named keys that point AT the DESIGN.md tokens. The spec tokens stay
+ * verbatim in tokens.css; only the utility names differ.
+ *
+ * Spacing is deliberately not mapped — DESIGN.md's 4px base is identical to
+ * Tailwind's default scale (p-4 = 1rem, p-24 = 6rem, ...), so the defaults
+ * already emit the spec values.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --- Palette (§1). No collision: spec prefixes these --nc-*. --- */
+  --color-green-900: var(--nc-green-900);
+  --color-green-800: var(--nc-green-800);
+  --color-green-700: var(--nc-green-700);
+  --color-green-600: var(--nc-green-600);
+  --color-sage-500: var(--nc-sage-500);
+  --color-sage-300: var(--nc-sage-300);
+  --color-mint-200: var(--nc-mint-200);
+  --color-mint-100: var(--nc-mint-100);
+  --color-mint-50: var(--nc-mint-50);
+  --color-orange-600: var(--nc-orange-600);
+  --color-orange-500: var(--nc-orange-500);
+  --color-gold-400: var(--nc-gold-400);
+  --color-ink-900: var(--nc-ink-900);
+  --color-ink-700: var(--nc-ink-700);
+  --color-ink-500: var(--nc-ink-500);
+  --color-ink-300: var(--nc-ink-300);
+  --color-ink-100: var(--nc-ink-100);
+  --color-paper: var(--nc-paper);
+  --color-cream: var(--nc-cream);
+  --color-logo-green: var(--nc-logo-green);
+
+  /* --- Semantic (§1). Renamed to clear Tailwind's namespace. --- */
+  --color-fg: var(--color-text);
+  --color-fg-muted: var(--color-text-muted);
+  --color-fg-inverse: var(--color-text-inverse);
+  --color-surface: var(--color-bg);
+  --color-surface-alt: var(--color-bg-alt);
+  --color-surface-brand: var(--color-bg-brand-soft);
+  --color-brand: var(--color-primary);
+  --color-brand-hover: var(--color-primary-hover);
+  --color-accent-strong: var(--color-accent);
+  --color-hairline: var(--color-border);
+  --color-ring: var(--color-focus);
+  --color-ok: var(--color-success);
+  --color-danger: var(--color-error);
+
+  /* --- Typography (§2) ---
+   * --font-sans follows the [lang] fork. The two explicit stacks are for the
+   * case that breaks the fork: Bengali text rendered on the /en route (the
+   * language toggle), and vice versa. Without `font-bn`, "বাংলা" on /en falls
+   * back to whatever Bengali face the OS happens to ship. */
+  --font-sans: var(--font-active);
+  --font-bn: var(--font-bangla);
+  --font-en: var(--font-latin);
+
+  /* --- Radii (§4). Intent-named to clear --radius-*. --- */
+  --radius-tight: var(--radius-sm);
+  --radius-soft: var(--radius-md);
+  --radius-card: var(--radius-lg);
+  --radius-hero: var(--radius-xl);
+  --radius-pill: var(--radius-full);
+
+  /* --- Elevation (§4). Intent-named to clear --shadow-*. --- */
+  --shadow-card: var(--shadow-sm);
+  --shadow-raised: var(--shadow-md);
+  --shadow-float: var(--shadow-lg);
+
+  /* --- Motion (§5) --- */
+  --ease-out: var(--ease-out);
+  --ease-inout: var(--ease-inout);
+
+  /* --- Layout (§7) --- */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --container-content: 1200px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Type scale (§2) as utilities rather than theme keys, for the same
+   namespace reason. Use `type-h1` etc. instead of a raw font-size. */
+@utility type-display {
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+}
+@utility type-h1 {
+  font-size: var(--text-h1);
+  line-height: var(--leading-tight);
+}
+@utility type-h2 {
+  font-size: var(--text-h2);
+  line-height: var(--leading-tight);
+}
+@utility type-h3 {
+  font-size: var(--text-h3);
+  line-height: var(--leading-tight);
+}
+@utility type-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-normal);
+}
+@utility type-body {
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+}
+@utility type-small {
+  font-size: var(--text-small);
+  line-height: var(--leading-normal);
+}
+
+/* §3 prose measure — 68ch Latin, 60ch Bangla, forked in tokens.css. */
+@utility measure {
+  max-width: var(--prose-measure);
+}
+
+/* §3 section vertical rhythm. */
+@utility section-rhythm {
+  padding-block: var(--section-rhythm);
+}
+
+@layer base {
+  html {
+    /* Never disable zoom; never set a fixed root px size. */
+    -webkit-text-size-adjust: 100%;
+    /* Safety net, not a fix for anything specific: no section should ever be
+       wider than the viewport, but if one is (an unconstrained flex/grid
+       child, a miscalculated carousel — see .carousel above for a case that
+       actually happened), this stops the whole page from scrolling sideways
+       instead of just that section. Doesn't affect an element's own internal
+       overflow-x:scroll, like the carousel's. */
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-active);
+    font-size: var(--text-body);
+    line-height: var(--leading-normal);
+    /* Keeps the size-selector readout from reflowing as the slider drags. */
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: var(--leading-tight);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  /* §8 A11y: 2px --color-focus ring, 2px offset, every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* DESIGN.md §1 quotes its contrast ratios against --nc-paper. On the tinted
+     surfaces that audit does not hold: --nc-ink-500 measures 4.44:1 on
+     --nc-cream and 4.32:1 on --nc-mint-50, both under AA for body text. Muted
+     text therefore steps one stop darker on those surfaces (9.3:1+).
+     Measured in Stage 4, not assumed. */
+  .bg-surface-alt,
+  .bg-surface-brand {
+    --color-text-muted: var(--nc-ink-700);
+  }
+
+  /* DESIGN.md §2: never set Bangla in all-caps or with letter-spacing. Both
+     break the script. Enforced here rather than left to discipline. */
+  [lang="bn"] * {
+    letter-spacing: normal !important;
+    text-transform: none !important;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Mobile-only tighter spacing between Product Sequence and Newborn Section */
+@media (max-width: 767px) {
+  .seq-stage {
+    padding-bottom: 1.5rem;
+  }
+  .seq-features {
+    padding-top: 0.5rem;
+    padding-bottom: 1.5rem;
+  }
+  #newborn {
+    padding-top: 2.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * S3–S8 pinned sequence — DESKTOP ONLY (BUILD_SPEC §5).
+ *
+ * Every rule here is gated on BOTH >=768px AND [data-pinned="true"], which the
+ * client sets only after useCanAnimate() passes. So:
+ *   - below 768px            -> none of this applies; the Stage 2 stacked
+ *                               layout is what renders, unchanged
+ *   - reduced motion         -> data-pinned stays false, sections stay in flow
+ *   - slow connection / save-data -> same
+ *
+ * That is the "off" state required by §1 non-negotiable 2, and it is the
+ * default rather than something we have to remember to fall back to.
+ * ------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .seq-root[data-pinned='true'] {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .seq-root[data-pinned='true'] .seq-stage {
+    position: absolute;
+    inset: 0;
+    padding-block: 0;
+  }
+
+  /* Both the image (here) and the copy (.seq-copy-wrap below) are full-
+     viewport absolute overlays stacked on top of each other. Capping each to
+     --container-content and centering it with auto margins — the same box
+     every other section uses via `mx-auto max-w-(--container-content)` —
+     keeps the image and copy converging toward the middle of the page on a
+     wide screen instead of each being pinned to its own raw viewport edge,
+     which left a growing dead gap between them as the window got wider. */
+  .seq-root[data-pinned='true'] .seq-stage-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: var(--container-content);
+    margin-inline: auto;
+    /* Fixed, not vw: vw keeps scaling with the true viewport even once this
+       box is capped at --container-content, which would push the image
+       further right than the (also capped) copy expects as the window grows
+       past 1200px, re-opening the gap this whole change exists to close. */
+    padding-inline: clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .seq-root[data-pinned='true'] .seq-stage-inner {
+    position: relative;
+    width: min(30vw, 22rem);
+    max-width: none;
+    aspect-ratio: 1200 / 1698;
+    margin: 0;
+    transform-origin: center center;
+  }
+
+  /* The section heading sits above the stage rather than scrolling past it. */
+  .seq-root[data-pinned='true'] .seq-heading {
+    position: absolute;
+    top: calc(5rem + var(--space-8));
+    left: var(--space-8);
+    right: auto;
+    max-width: 34ch;
+    z-index: 1;
+  }
+
+  .seq-root[data-pinned='true'] .seq-features {
+    position: absolute;
+    inset: 0;
+    padding-block: 0;
+    background: none;
+    pointer-events: none;
+  }
+
+  .seq-root[data-pinned='true'] .seq-copy-wrap {
+    position: absolute;
+    inset: 0;
+    max-width: var(--container-content);
+    margin-inline: auto;
+    padding: 0;
+  }
+
+  .seq-root[data-pinned='true'] .seq-copy-list {
+    position: absolute;
+    inset: 0;
+    display: block;
+    gap: 0;
+  }
+
+  /* All five copy blocks are stacked in the same place and cross-faded by the
+     timeline. They stay in the DOM at all times (§8) — only opacity and
+     transform change, never display or mount state. */
+  .seq-root[data-pinned='true'] .seq-copy {
+    position: absolute;
+    top: 50%;
+    right: 4%;
+    width: min(34vw, 26rem);
+    translate: 0 -50%;
+    opacity: 0;
+  }
+
+  /* Desktop uses the arrow + copy, not the mobile card chrome. */
+  .seq-root[data-pinned='true'] .seq-card {
+    border: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .seq-root[data-pinned='true'] .seq-card-body {
+    padding: 0;
+  }
+
+  .seq-root[data-pinned='true'] .seq-card-media {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Carousel (S9 New Born gallery) — hand-ported from daisyUI's carousel
+ * component, since this project has no daisyui dependency to pull it in as a
+ * plugin. Source (as of writing):
+ * https://raw.githubusercontent.com/saadeghi/daisyui/refs/heads/master/packages/daisyui/src/components/carousel.css
+ *
+ * A plain horizontally-scrolling flex row with CSS scroll-snap — no JS, no
+ * autoplay. `prefers-reduced-motion: reduce` already forces
+ * `scroll-behavior: auto !important` globally (see below), so the smooth-
+ * scroll opt-in here only ever applies when motion is allowed.
+ * ------------------------------------------------------------------------- */
+.carousel {
+  /* daisyUI's upstream rule is `inline-flex`, sized to fit ALL its content —
+     fine when the caller wraps it in something narrower, but here nothing
+     did, so the row (and overflow-x:scroll along with it) grew as wide as
+     every item summed, which dragged the whole page into horizontal scroll
+     instead of just this row. `flex` + `width:100%` caps it at the
+     container's width so only the row itself scrolls. */
+  display: flex;
+  width: 100%;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .carousel {
+    scroll-behavior: smooth;
+  }
+}
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+.carousel-item {
+  box-sizing: content-box;
+  display: flex;
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* ---------------------------------------------------------------------------
+ * Ecommerce hover response (§5 motion tokens; no new hex/timing values).
+ *
+ * Gated on `(hover: hover) and (pointer: fine)` — not just a bare `:hover` —
+ * so a tap on touch never leaves a card "stuck" lifted or zoomed the way a
+ * plain CSS :hover would. Reduced motion is handled by the global rule below,
+ * which already zeroes every transition-duration.
+ * ------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  .hover-card {
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+  }
+  .hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-raised);
+    border-color: var(--color-sage-500);
+  }
+
+  .hover-zoom {
+    overflow: hidden;
+  }
+  .hover-zoom img {
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .hover-zoom:hover img {
+    transform: scale(1.06);
+  }
+}
+
+/* DESIGN.md §5 — every motion token is void under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Range Slider styling (S10 Size Selector)
+ * ------------------------------------------------------------------------- */
+.size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+.size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 3px solid var(--color-bg);
+  box-shadow: var(--shadow-raised);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.size-slider::-webkit-slider-thumb:hover,
+.size-slider::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+}
+.size-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 3px solid var(--color-bg);
+  box-shadow: var(--shadow-raised);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.size-slider::-moz-range-thumb:hover,
+.size-slider::-moz-range-thumb:active {
+  transform: scale(1.15);
 }

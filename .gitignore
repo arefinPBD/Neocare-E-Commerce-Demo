@@ -10,32 +10,40 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# Next.js build artifacts & server-side caches
 /.next/
 /out/
-
-# production
 /build
+/dist
+/.cache/
+/.turbo/
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
+# local environment files & secrets
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.pem
+*.key
 
-# debug
+# debug & logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+logs
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# deployment & cloud
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.claude/
+.idea/
+.vscode/
