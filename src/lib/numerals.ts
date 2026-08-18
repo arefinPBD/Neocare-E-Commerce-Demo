@@ -37,3 +37,12 @@ export function fmtWeight(kg: number, locale: Locale): string {
     maximumFractionDigits: 1,
   });
 }
+
+/**
+ * `poisha` -> "৳ {taka}", no decimals (every placeholder price in sizes.ts is
+ * a whole-taka amount). BUILD_SPEC §4.1 — every value passed through this is
+ * a placeholder until the client confirms real prices.
+ */
+export function fmtMoney(poisha: number, locale: Locale): string {
+  return `৳ ${fmt(Math.round(poisha / 100), locale)}`;
+}

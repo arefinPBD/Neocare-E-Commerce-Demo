@@ -4,6 +4,8 @@ import { Poppins, Hind_Siliguri } from 'next/font/google';
 import { lang } from 'next/root-params';
 
 import '../globals.css';
+import { CartProvider } from '@/components/cart/CartContext';
+import { CartSidebar } from '@/components/cart/CartSidebar';
 import { LOCALES, getDictionary, isLocale } from '@/lib/i18n';
 
 /* DESIGN.md §2 — one weight per script for the demo: 400 and 600.
@@ -82,7 +84,10 @@ export default async function RootLayout(props: LayoutProps<'/[lang]'>) {
         >
           {t.nav.skipToContent}
         </a>
-        {props.children}
+        <CartProvider>
+          {props.children}
+          <CartSidebar t={t} locale={current} />
+        </CartProvider>
       </body>
     </html>
   );

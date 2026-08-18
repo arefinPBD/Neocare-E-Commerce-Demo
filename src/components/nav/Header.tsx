@@ -4,6 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { CartButton } from '@/components/nav/CartButton';
+import { SearchInput, type SearchProduct } from '@/components/nav/SearchInput';
+
 import logo from '../../../public/brand/logo.svg';
 
 export interface NavItem {
@@ -24,8 +27,8 @@ export interface NavItem {
  * The mobile menu is a native <details>/<summary> disclosure: it opens without
  * JS, is keyboard-operable for free, and needs no focus-trap.
  *
- * No cart icon. BUILD_SPEC §1 puts cart out of scope; an icon that leads
- * nowhere is worse than its absence.
+ * BUILD_SPEC v2.0 §5.1 — cart icon now genuinely opens the drawer (§6), and a
+ * search input filters the (small, real) product catalogue.
  */
 export function Header({
   toggle,
@@ -33,6 +36,12 @@ export function Header({
   menuLabel,
   navLabel,
   logoAlt,
+  locale,
+  searchProducts,
+  searchPlaceholder,
+  searchAriaLabel,
+  searchNoResults,
+  cartLabel,
 }: {
   toggle: ReactNode;
   nav: NavItem[];
@@ -40,6 +49,12 @@ export function Header({
   /** Landmark name. Distinct from menuLabel, which names the toggle. */
   navLabel: string;
   logoAlt: string;
+  locale: string;
+  searchProducts: SearchProduct[];
+  searchPlaceholder: string;
+  searchAriaLabel: string;
+  searchNoResults: string;
+  cartLabel: string;
 }) {
   const [atTop, setAtTop] = useState(false);
 
@@ -120,6 +135,15 @@ export function Header({
           </nav>
 
           <div className="flex items-center gap-1">
+            <SearchInput
+              locale={locale}
+              products={searchProducts}
+              placeholder={searchPlaceholder}
+              ariaLabel={searchAriaLabel}
+              noResults={searchNoResults}
+              className="hidden w-48 lg:block"
+            />
+            <CartButton label={cartLabel} />
             {toggle}
 
             <details className="relative md:hidden [&[open]>summary>svg]:rotate-90">
@@ -144,8 +168,17 @@ export function Header({
 
               <nav
                 aria-label={navLabel}
-                className="absolute right-0 top-full mt-2 min-w-52 rounded-card border border-hairline bg-surface p-2 shadow-float"
+                className="absolute right-0 top-full mt-2 min-w-64 rounded-card border border-hairline bg-surface p-2 shadow-float"
               >
+                <div className="p-1 pb-2">
+                  <SearchInput
+                    locale={locale}
+                    products={searchProducts}
+                    placeholder={searchPlaceholder}
+                    ariaLabel={searchAriaLabel}
+                    noResults={searchNoResults}
+                  />
+                </div>
                 <ul>
                   {nav.map((item) =>
                     item.children ? (

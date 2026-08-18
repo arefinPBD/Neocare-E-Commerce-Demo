@@ -43,6 +43,7 @@
 2. Mobile 375px, static, complete. No GSAP/pin/scrub/Lenis. **done**
 3. Desktop >=768px enhancement. One ScrollTrigger, one pin, one timeline. **done**
 4. Hardening — a11y §8, performance gates §9. **done**
+5. v2.0 storefront rebuild (BUILD_SPEC v2.0, 2026-08-18) — see breakdown below. **done**
 
 # Stage 3 notes
 - `lib/sequence.ts` holds sequence constants (no gsap import). `lib/motion.ts`
@@ -76,3 +77,49 @@ Do not start a stage before the previous one is signed off.
   surfaces only. Do not revert without re-measuring.
 - Contrast is verified by sampling actual image pixels / computed styles, never
   from the token table. Re-run that check if the hero photography changes.
+
+# Stage 5 — v2.0 storefront rebuild (BUILD_SPEC v2.0)
+
+Built in dependency order so each stage was independently verifiable
+(`tsc --noEmit` + a curl smoke test against the dev server) before the next
+one relied on it:
+
+1. **Data layer.** `lib/sizes.ts` extended with `slug` + `priceByPack`
+   (placeholder prices, §4.1). New `lib/cart.ts` (cart math: line/subtotal
+   totals, storage key, a `localStorage`-shape type guard) and
+   `lib/placeholderCatalogue.ts` (§4.2's three placeholder categories).
+   `numerals.ts` got `fmtMoney`.
+2. **Cart infrastructure.** `components/cart/CartContext.tsx` (Context +
+   `localStorage`, hydration-guarded), `CartSidebar.tsx` (built on a native
+   `<dialog>` for free focus-trap/`Escape`/backdrop — simpler and more robust
+   than a hand-rolled trap), `CartItemRow.tsx`.
+3. **Product components.** `components/product/AddToCartButton.tsx`,
+   `ProductCard.tsx` (quick-add gated on single-pack products, §5.2),
+   `components/sections/ProductGrid.tsx` (homepage Shop section).
+4. **Routes.** `app/[lang]/product/[slug]` (PDP, `generateStaticParams` over
+   the 5 real slugs), `app/[lang]/products` (full grid), `app/[lang]/category/
+   [slug]` (the 3 placeholder categories, add-to-cart disabled by default),
+   `app/[lang]/checkout` (static summary, §6.4 — never implies a completed
+   transaction).
+5. **Header wiring.** `nav/SearchInput.tsx` (client-side filter, no backend)
+   and `nav/CartButton.tsx` added to `Header.tsx`; nav's "Our Products"
+   dropdown now points at real routes instead of `#` (Diapers Line → 
+   `/products`, the other three → `/category/{slug}`); Parenting Journey
+   untouched (`#`, out of scope, §13).
+6. **Homepage reorder + wiring.** `app/[lang]/page.tsx` reordered to §5.0
+   (Hero → ProductGrid → TrustStrip → NewbornSection → SizeSelector → Faq →
+   ProductSequence("Look Closer") → Footer); `ShopCta.tsx` deleted (dead code
+   — superseded by ProductGrid); `layout.tsx` wraps `children` in
+   `CartProvider` and mounts `CartSidebar` globally.
+7. **Content.** New `shop`/`pdp`/`cart`/`category`/`checkout`/`search` keys
+   added to both `en.json` and `bn.json` (direct Bangla translation, not
+   `[BN]`-prefixed — same precedent as the earlier nav-dropdown labels: short,
+   factual UI strings, no unverified claims). Removed the now-dead `cta` block
+   and `footer.demoNote` (both only referenced by the deleted `ShopCta`).
+
+Verified end-to-end via `tsc --noEmit` (clean) and curl smoke tests against
+every new route in both locales, plus a byte-offset check on the homepage
+HTML confirming section order matches §5.0 exactly. Not verified in an actual
+browser (no Playwright/browser automation available in this environment) —
+still worth a manual pass for the cart drawer's focus/`Escape` behaviour and
+the search popover's keyboard nav before calling this done.

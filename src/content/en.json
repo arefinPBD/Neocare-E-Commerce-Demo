@@ -166,11 +166,6 @@
       }
     ]
   },
-  "cta": {
-    "title": "Bring NeoCare home",
-    "body": "Choose the size that matches your baby's weight, then order a pack.",
-    "button": "Shop Now"
-  },
   "footer": {
     "tagline": "Baby Diaper",
     "contactTitle": "Contact",
@@ -185,7 +180,74 @@
       "youtube": "YouTube",
       "tiktok": "TikTok"
     },
-    "copyright": "© 2026 Incepta Hygiene & Hospicare Ltd. All rights reserved.",
-    "demoNote": "Demo landing page. Shopping is not enabled."
+    "copyright": "© 2026 Incepta Hygiene & Hospicare Ltd. All rights reserved."
+  },
+  "shop": {
+    "title": "Shop NeoCare",
+    "intro": "Real pack sizes, priced and ready to add to your cart.",
+    "quickAdd": "Quick add"
+  },
+  "pdp": {
+    "addToCart": "Add to cart",
+    "choosePack": "Choose a pack size",
+    "backToFinder": "Not sure which size? Use the size finder"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "close": "Close cart",
+    "packLabel": "Pack of",
+    "emptyTitle": "Your cart is empty",
+    "emptyBody": "Add a pack to get started.",
+    "continueShopping": "Continue shopping",
+    "subtotal": "Subtotal",
+    "shippingNote": "Shipping calculated at checkout.",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity"
+  },
+  "category": {
+    "comingSoon": "Coming soon",
+    "items": {
+      "adult-diapers": {
+        "title": "Adult Diapers",
+        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
+        "items": {
+          "regular": "Adult Diapers — Regular",
+          "overnight": "Adult Diapers — Overnight",
+          "maxi": "Adult Diapers — Maxi"
+        }
+      },
+      "baby-wipes": {
+        "title": "Baby Wipes",
+        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
+        "items": {
+          "pack80": "Baby Wipes — Pack of 80",
+          "pack120": "Baby Wipes — Pack of 120",
+          "pack3x80": "Baby Wipes — 3 × 80 Pack"
+        }
+      },
+      "face-wipes": {
+        "title": "Face Wipes",
+        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
+        "items": {
+          "pack30": "Face Wipes — Pack of 30",
+          "pack60": "Face Wipes — Pack of 60",
+          "pack90": "Face Wipes — Pack of 90"
+        }
+      }
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "notLive": "Checkout isn't live in this demo yet — this page shows what's in your cart, nothing more.",
+    "orderSummary": "Order summary",
+    "backToShopping": "Back to shopping",
+    "emptyCart": "Your cart is empty."
+  },
+  "search": {
+    "placeholder": "Search products",
+    "ariaLabel": "Search products",
+    "noResults": "No products found"
   }
 }
