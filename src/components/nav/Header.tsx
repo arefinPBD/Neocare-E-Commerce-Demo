@@ -44,9 +44,15 @@ export interface NavItem {
  *
  * So while the header is transparent, its controls render at --nc-ink-900,
  * which measures 5.13:1 against that same worst pixel. Once the header goes
- * solid at 80px, §5.2's --nc-ink-500 applies exactly as specified. `group` +
- * `data-at-top` carries the state to the children, including the ones that
- * live in their own components.
+ * solid at 80px, §5.2's --nc-ink-500 applies exactly as specified.
+ *
+ * The group is NAMED (`group/header`), and that is not cosmetic. An unnamed
+ * `group` here would be matched by every unnamed `group-*` utility below it,
+ * because `group-hover:` compiles to `.group:hover &` and matches ANY .group
+ * ancestor, not the nearest one. The dropdown panels use `group-hover:visible`
+ * against their own `<li class="group">`, so an unnamed group on the header
+ * made hovering anywhere in the bar open BOTH dropdowns on top of each other.
+ * Naming this one keeps the two scopes separate.
  *
  * The transparent state is applied by JS. With JS disabled the <noscript>
  * block forces the solid state, so the logo and controls stay legible against
@@ -108,7 +114,7 @@ export function Header({
       <header
         data-at-top={atTop ? 'true' : 'false'}
         className={
-          'site-header group sticky top-0 z-40 transition-[background-color,box-shadow] duration-[--dur-base] ease-[--ease-out] ' +
+          'site-header group/header sticky top-0 z-40 transition-[background-color,box-shadow] duration-[--dur-base] ease-[--ease-out] ' +
           (atTop ? 'bg-transparent' : 'bg-surface shadow-card')
         }
       >
@@ -140,7 +146,7 @@ export function Header({
                   <li key={item.label} className="group relative">
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]/header:text-fg"
                     >
                       {item.label}
                     </a>
@@ -163,7 +169,7 @@ export function Header({
                   <li key={item.href}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]/header:text-fg"
                     >
                       {item.label}
                     </a>

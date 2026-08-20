@@ -19,10 +19,10 @@ export function LanguageToggle({
       lang={other}
       hrefLang={other}
       aria-label={label}
-      /* group-data-[at-top] comes from Header. --nc-green-800 measures 4.02:1
+      /* group-data-[at-top]/header comes from Header's named group. --nc-green-800 measures 4.02:1
          against the darkest pixel behind the transparent header, under AA;
          --nc-ink-900 measures 5.13:1. See the contrast note in Header.tsx. */
-      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand group-data-[at-top=true]:text-fg"
+      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand group-data-[at-top=true]/header:text-fg"
     >
       <span className={other === 'bn' ? 'font-bn' : 'font-en'}>
         {LOCALE_LABEL[other]}
