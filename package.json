@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "shots": "playwright test tests/baseline.spec.ts"
   },
   "dependencies": {
     "gsap": "^3.15.0",
@@ -16,6 +19,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.3.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
