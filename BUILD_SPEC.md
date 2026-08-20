@@ -1,302 +1,309 @@
-# NeoCare Demo Landing — Build Spec
-**v2.1** · For Claude Code · Companion to `DESIGN.md`
+# NeoCare Demo Storefront — Build Spec
+**v3.0** · 19 August 2026 · For Claude Code · Companion to `DESIGN.md` v2.0
+Supersedes v2.1 (kept at `BUILD_SPEC.md.v2.bak`).
 
-> **This is an imperative build spec, not a discussion document.** Where it says a value, use that value. Where it says TODO, stop and ask.
-> Rationale lives in `NeoCare_Rebuild_Plan.md` — read that only if a decision here seems wrong.
-
----
-
-## 0. v2.0 — what changed from v1.0, and why
-
-v1.0 was a scroll-driven **marketing page with no commerce**: one route, a pinned product-reveal sequence near the top, a single "Shop Now" button that went nowhere. Stages 1–4 of that spec are built and signed off — see the "Stages" log in `CLAUDE.md`.
-
-This revision re-shapes the site around an actual **storefront**, modeled on the UX of [`yournextstore/yournextstore`](https://github.com/yournextstore/yournextstore) (demo: `demo.yournextstore.com`) — its product grid, product card, product detail page, and slide-out cart. Concretely:
-
-- **What's copied from the reference site:** the product-showcase pattern (grid → PDP) and the cart pattern (icon → slide-out drawer → items/subtotal → checkout button). These are *interaction and layout* patterns, not code — the reference repo runs on Stripe/`commerce-kit`, which we do not adopt (§13).
-- **What stays exactly as already built:** `DESIGN.md` tokens (colour palette, type scale, spacing, motion durations), the fonts, the header's nav *items* (Features · Our Products · Parenting Journey · New Born · Find your size · FAQ), the bilingual system, `NewbornSection`'s marquee gallery, the size-recommendation logic in `sizes.ts`, and the pinned "Look Closer" product-reveal sequence (relocated, not rebuilt — §5.7).
-- **What's new:** a real (client-side, no backend) shopping cart; a product grid and product detail pages built from the five diaper sizes as real "products"; a header search bar.
-- **Homepage section order changes.** "Shop Now" (formerly the last section, S12) is superseded by the new Product Grid, which now sits near the top, immediately after the hero — mirroring the reference site's `Hero → Featured Products` opener. "Look Closer" (formerly S3–S8, pinned right after the hero) moves to the bottom of the page, just above the footer.
-- **Non-negotiable 2 of v1.0 ("Out of scope: cart... checkout, payments") is superseded** by §13 below. Re-read §13 before assuming anything about payments is now in scope — it isn't.
-
-### 0.1 v2.1 — closing the layout gap with the reference site (2026-08-18)
-
-v2.0 adopted the reference site's *patterns* (grid → PDP, cart drawer) but the actual homepage still reads as visually different from `yournextstore`'s. Client feedback: **the upper half of the page — Header, Hero, Product Grid — should match the reference site's layout exactly, in NeoCare's own colour theme.** Decisions confirmed with the client on 2026-08-18, before touching anything:
-
-- **Hero restructures to the reference's text-hero layout, with the photo demoted to a background layer.** The reference's hero (`components/sections/hero.tsx`) is: contained width, a left-aligned text column (headline, subhead, two pill CTAs), and a decorative gradient — no photo. NeoCare keeps its hero *photo* (it's real product photography, not decoration to throw away) but stops using it as the full-bleed foreground with a dark contrast scrim. Instead: the photo becomes a **background layer at reduced opacity**, behind the same text-column structure the reference uses, so the layout genuinely matches (contained text block, not an image-first full-bleed section) while the photo still carries brand warmth instead of being deleted outright. This **replaces** v1.0/v2.0's full-bleed-photo-plus-scrim treatment and its Stage 4 contrast tuning — that tuning doesn't carry over as-is, because the text is no longer sitting on top of a full-strength photo (§5.1a has the details and the new contrast requirement).
-- **"Upper half" = Header + Hero + Product Grid**, matching the reference's own opener (`Navbar → Hero → Featured Products`). Sections below (Trust strip onward) are unaffected by this pass.
-
-Re-diffing against the actual reference source (`app/layout.tsx`, `components/sections/hero.tsx`, `components/sections/product-grid.tsx`, `components/product-card.tsx`, `components/quick-add-button.tsx`) is what produced the concrete deltas below — not a full rewrite, but not a no-op either. See §5.1, §5.1a and §5.2 for the updated component-level spec; each change states the reference behaviour it's copying.
-
-Do not re-derive these decisions from first principles while building; they were confirmed with the client on 2026-08-18. Where this file is silent on a UI detail the reference repo covers, look at the reference repo, then ask — do not invent.
+> **This is an imperative build spec, not a discussion document.** Where it says a value, use that value. Where it says **Stop and ask**, stop and ask.
+> Rationale for the v1.0/v2.x product decisions lives in `NeoCare_Rebuild_Plan.md` — read that only if a decision here seems wrong.
 
 ---
 
-## 1. What you are building
+## 0. What changed in v3.0, and why
 
-A **demo storefront** for NeoCare baby diapers: real product browsing and a real (non-paying) cart, on top of the marketing sections already built. One bilingual site, still no backend/database — product and price data live in the codebase, cart state lives in the browser.
+v2.1 modelled the storefront on `yournextstore`. v3.0 **re-bases the storefront layout on the `shirt-shop` reference kit** (`vercel/flags → examples/shirt-shop`, MIT) — supplied as `DESIGN-SYSTEM.md`, `tokens.css` and `ui-kit.tsx`.
 
-**In scope:** everything in v1.0's scope, plus a product grid, product detail pages, a functional client-side cart (add/remove/adjust qty, slide-out drawer, subtotal), and header search over the product catalogue.
-**Still out of scope:** payments, real checkout, order management, user accounts, Medusa, a CMS, courier/SMS/email integrations, 301s. See §13.
+Three surfaces are re-laid-out to match that kit exactly:
 
-### Non-negotiables
+1. **The upper half** — a promo bar above a restructured header, and the commerce page container (§5).
+2. **Products** — the grid, the card, and the product detail page's 12-column gallery-overlap layout (§6).
+3. **Cart** — the row anatomy, and a 7/5 cart page with an order-summary panel (§7).
 
-1. **Mobile-first.** The <768px layout is the *primary* design. Build and verify it before writing a single desktop scroll effect. The real audience is mid-tier Android on mobile data in Bangladesh.
+**What is ported: layout, grid geometry, type hierarchy, spacing rhythm, radii, interaction states, motion behaviour, and component anatomy.**
+**What is not ported: the kit's colour values, its typography, and its four npm dependencies.** Colour comes from `DESIGN.md` §1.5's mapping table. Dependencies are replaced per §2.
+
+**All existing NeoCare content is preserved.** No approved string is reworded, no section is deleted, no product is invented. Where the reference kit has a slot NeoCare has no content for, the slot is filled with real NeoCare data (§6.4, §6.5) or ships a `[TODO: client]` placeholder (§9). Nothing is fabricated to fill a layout.
+
+**What is untouched by v3.0:** `DESIGN.md` §1 palette and §2 type tokens, `src/styles/tokens.css`, the fonts, the nav *items*, the bilingual system, `Hero`, `TrustStrip`, `NewbornSection` and its marquee, `SizeSelector`'s recommendation logic, `Faq`, `ProductSequence` ("Look Closer"), `Footer`, and the entire §4 product data model. Everything in v2.1 §4, §7, §8, §13 and §14 carries forward unchanged and is restated here only where v3.0 adds to it.
+
+---
+
+## 1. Non-negotiables
+
+Carried forward from v2.1, unchanged. Every one of these outranks layout parity with the reference kit.
+
+1. **Mobile-first.** The <768px layout is the *primary* design. Build and verify it before any desktop grid work. The audience is mid-tier Android on mobile data in Bangladesh.
 2. **Every scroll effect has a defined "off" state** that still communicates the product.
-3. **No AI-generated image may carry a product claim.** Feature imagery uses real product photography only.
-4. **Navel cutout appears in the New Born section only.** Never elsewhere. It is a New Born SKU feature; showing it elsewhere is a false claim.
-5. **No invented price.** Every price shown is a clearly-marked placeholder (§4.1) until the client supplies real figures — the existing "never invent a figure" rule (§12) now explicitly covers prices too.
-6. **The cart never implies a real transaction.** No "Order confirmed," no reference number, nothing that reads as a completed purchase anywhere in the cart → checkout flow (§6.4).
+3. **No AI-generated image may carry a product claim.** Feature imagery is real product photography only.
+4. **The navel cutout appears in the New Born section only.** Never elsewhere.
+5. **No invented price.** Every price is a clearly-marked placeholder (§4.1) until the client supplies real figures.
+6. **The cart never implies a real transaction.** No "Order confirmed", no reference number, nothing that reads as a completed purchase.
+7. **No invented figure of any kind** — no rating, no review count, no percentage, no duration, no delivery threshold. This is why §6.5 replaces the reference kit's star rating instead of styling it.
 
 ---
 
-## 2. Setup
+## 2. Dependencies — add none
 
-Already scaffolded (Next.js 16.3+, TypeScript, Tailwind, `src/` dir, `next/root-params` for `[lang]`). No new framework dependencies are required for the cart (plain React Context + `localStorage`); add only what's actually needed for the search UI (e.g. a small fuzzy-match helper) — do not pull in `commerce-kit`, Stripe, or any backend SDK.
+The reference kit imports `@headlessui/react`, `motion`, `clsx` and `@heroicons/react`. **Do not install any of them.** Four libraries against a 180 KB gzipped JS budget, for behaviour this codebase already implements natively, is not a trade worth making. Build each with the pattern already in the repo:
 
-Updated file map (additions marked `NEW`, moved items marked `MOVED`):
+| Reference kit uses | Build it with |
+|---|---|
+| `RadioGroup` / `Radio` (Headless UI) | Native `<fieldset>` + `<input type="radio" class="peer sr-only">` and a `<label>` styled via `peer-checked:` / `peer-focus-visible:`. Keyboard behaviour and grouping come free; no JS. |
+| `data-checked:` / `data-focus:` variants | `peer-checked:` / `peer-focus-visible:` |
+| `motion` / `AnimatePresence` | CSS `@keyframes` in `globals.css` driven by `--dur-*` and `--ease-*`. `DESIGN.md` §5 has the per-effect table. |
+| `clsx` | Template literals, as every existing component does. If a third component needs conditional joins, add a four-line local `cx()` in `src/lib/` — not a package. |
+| `@heroicons/react` | Inline `<svg>` with `stroke="currentColor"`, as `Header.tsx`, `CartSidebar.tsx` and `ProductCard.tsx` already do. |
+| `next/image` → `<img>` (the kit's own swap) | Keep `next/image`. The kit swapped it out only to be framework-agnostic; this is a Next app and the optimiser is already load-bearing against the §11 budgets. |
 
-```
-src/
-  app/
-    [lang]/
-      layout.tsx
-      page.tsx                    # section order: §5.0
-      products/page.tsx           # NEW — full product grid (Diapers Line)
-      product/[slug]/page.tsx     # NEW — PDP
-      category/[slug]/page.tsx    # NEW — placeholder grids, §4.2 (Adult Diapers/Baby Wipes/Face Wipes)
-      checkout/page.tsx           # NEW — static placeholder, §6.4
-    globals.css
-  components/
-    nav/
-      Header.tsx  LanguageToggle.tsx
-      SearchInput.tsx              # NEW
-      CartButton.tsx               # NEW
-    cart/
-      CartProvider.tsx             # NEW — Context + localStorage
-      CartSidebar.tsx              # NEW — slide-out drawer
-      CartItemRow.tsx              # NEW
-    product/
-      ProductCard.tsx              # NEW
-      ProductGallery.tsx           # NEW — PDP image gallery
-      AddToCartButton.tsx          # NEW
-      TurntableSequence.tsx FeatureArrow.tsx   # unchanged
-    sections/
-      Hero.tsx TrustStrip.tsx
-      ProductGrid.tsx              # NEW — homepage "Shop" section, §5.2
-      ProductSequence.tsx          # "Look Closer" — MOVED to bottom, §5.7
-      NewbornSection.tsx
-      SizeSelector.tsx Faq.tsx Footer.tsx
-      # ShopCta.tsx removed — superseded by ProductGrid, §5.2
-    ui/Button.tsx Card.tsx Accordion.tsx
-  lib/
-    motion.ts  useCanAnimate.ts
-    sizes.ts                       # extended into product data, §4
-    cart.ts                        # NEW — cart math, mirrors reference's cart-math.ts
-  content/
-    en.json  bn.json
-  styles/tokens.css                # DESIGN.md §1-5 verbatim — untouched
-public/
-  product/  hero/  newborn/  brand/         # unchanged, reused for product images
-```
+`gsap` and `lenis` stay. No new dependency of any kind ships in v3.0.
 
 ---
 
 ## 3. Design tokens
 
-**Unchanged.** `DESIGN.md` §1–5 remain the single source for colour, type, spacing and motion tokens. The redesign adopts the reference site's *layout and interaction* patterns, never its visual language — no neutral/grayscale reference palette, no reference typography. Every new component (product card, cart drawer, search input) is built from `tokens.css` exactly like every existing component. **Do not hardcode a hex anywhere in a component.**
+`DESIGN.md` §1–§5 remain the single source for colour, type, spacing, radii and motion. **`src/styles/tokens.css` needs no edit for v3.0** — every value the storefront needs already exists.
+
+**`DESIGN.md` §1.5 is the colour port.** It maps each of the reference kit's twelve semantic tokens to exactly one NeoCare token. When reference markup says `bg-surface-raised`, write the utility in that table's right-hand column. **No hex literal outside `tokens.css`.** No new token.
+
+Two mappings in that table exist because the reference kit is wrong for NeoCare, not because of translation — read them before writing a colour: skeleton bars use `bg-ink-100` (not the panel surface), and icons at rest use `text-ink-500` (not `text-ink-300`, which fails WCAG 1.4.11 at 2.2:1).
+
+`globals.css` needs one addition: the `@keyframes` for the spinner and the cart-row enter/exit, per `DESIGN.md` §5.
 
 ---
 
-## 4. Product data model
+## 4. Product data — unchanged
 
-The five diaper sizes in `sizes.ts` become the real product catalogue — no new products are invented. Extend `SizeRow` (do not replace it; `SizeSelector`'s existing logic depends on it) with commerce fields:
+`src/lib/sizes.ts` is the catalogue: the five diaper sizes are the five products. `SizeRow` already carries `slug` and `priceByPack`. No schema change in v3.0.
 
-```ts
-export interface SizeRow {
-  key: SizeKey;
-  min: number;
-  max: number;
-  packs: number[];         // existing — one entry per pack-size variant
-  image: string;
-  imageW: number;
-  imageH: number;
-  // NEW:
-  slug: string;             // '/product/{slug}' — e.g. 'medium'
-  priceByPack: Record<number, number>;  // pack size → price in poisha (integer, avoid float money), §4.1
-}
+- **§4.1 Prices stay placeholders.** Integer poisha, round numbers, `// TODO: client — placeholder price, not confirmed` at the data source. The UI does not visually distinguish a placeholder price from a real one; the marker lives in code. No price ships to production unreplaced.
+- **§4.2 The three placeholder categories** (Adult Diapers, Baby Wipes, Face Wipes) keep their v2.1 treatment: 3–4 cards each from real NeoCare diaper photography, an honest "Coming soon" label on the category page, add-to-cart disabled by default, `// TODO: client — placeholder photography` at the data source. They adopt v3.0's card and grid layout (§6.1, §6.2) and nothing else.
+- **Parenting Journey** stages stay `#` placeholders. No products, no prices, no images.
+
+---
+
+## 5. The upper half
+
+### 5.1 Promo bar — NEW
+
+A full-width band above the header.
+
+- Markup: one `<div>`, `bg-green-900 px-4 py-2 text-center type-small font-semibold text-fg-inverse`.
+- **Not sticky.** It scrolls away; the header sticks beneath it. Do not wrap both in a sticky container.
+- Content: `t.promo.text` — a new key, shipped as a `[TODO: client]` placeholder per §9. The reference kit's copy is a free-delivery threshold; NeoCare has no such offer and non-negotiable 7 forbids inventing one. **Do not write a delivery threshold, discount, or shipping promise into this bar.**
+- When `t.promo.text` is an empty string, render nothing at all — no empty band.
+
+`--nc-green-900` on `--color-text-inverse` measures 13.6:1.
+
+### 5.2 Header — restructured
+
+Keep everything `Header.tsx` already does: sticky, transparent over the hero then `bg-surface shadow-card` after 80px, the `<noscript>` solid-state fallback, the native `<details>` mobile disclosure, `SearchInput`, `CartButton`, `LanguageToggle`. Change only the bar's geometry and the cart affordance:
+
+1. **Height 96px (`h-24`) at every width**, replacing `h-16 md:h-20`. This is the reference kit's single header height and it is what gives the upper half its air. The hero's negative top margin must change with it: `-mt-24` in place of `-mt-16 md:-mt-20`, one value now instead of two.
+2. **Three-zone row:** `flex h-24 items-center justify-between`. Left zone `flex flex-1 items-center` holds the logo (mobile) or logo + nav (desktop, `hidden h-full space-x-8 lg:flex`). Right zone `flex flex-1 items-center justify-end` holds search, cart, language toggle, and the mobile menu disclosure.
+3. **Nav items — unchanged, do not add or remove:** Features · Our Products (Diapers Line, Adult Diapers, Baby Wipes, Face Wipes) · Parenting Journey (Conception, Pregnancy, New Born, Baby, Family) · New Born · Find your size · FAQ. Link targets unchanged: Diapers Line → `/products`, the other three → `/category/{slug}`, all of Parenting Journey → `#`.
+4. **Nav link styling** becomes the reference kit's: `type-small font-semibold text-fg-muted hover:text-fg`, no pill background on hover. The current `text-brand hover:bg-surface-brand` treatment is replaced. Dropdown panels keep their existing `rounded-card` + `shadow-float` chrome.
+5. **Cart affordance** becomes the reference kit's: icon plus a bare count, not a badge. `group -m-2 flex items-center p-2`; glyph `h-6 w-6 flex-shrink-0 text-ink-500 group-hover:text-fg-muted`; count `ml-2 min-w-3 type-small font-semibold text-fg-muted group-hover:text-fg`. Before hydration, render `ml-2 h-4 w-3 rounded-tight bg-ink-100` in the count's place — a skeleton the exact size of the digit, so the row does not shift when the count arrives. The count still needs `aria-live="polite"`.
+6. **The cart icon still opens the drawer** (§7.1). It does not navigate.
+
+### 5.3 Commerce page container
+
+The product detail page and the cart page wrap their content in:
+
+```
+mx-auto max-w-2xl px-4 pb-16 sm:px-6 sm:pb-24 lg:max-w-7xl lg:px-8
 ```
 
-Each pack size (e.g. Medium's `[30, 50]`) is a **variant** of the same product, exactly like the reference site's `ProductCard` price-range display (`minPrice - maxPrice` when variants differ). A product with one pack size shows a single price; Medium shows a range.
+**This container is for those two routes only.** The homepage keeps its current structure: full-bleed sections, each with its own `mx-auto max-w-(--container-content) px-4 md:px-6` inner container. Do not wrap the homepage in the commerce container, and do not widen the marketing sections to `max-w-7xl` — the two rhythms differ deliberately (`DESIGN.md` §7.1).
 
-### 4.1 Prices — placeholder, not invented
+### 5.4 Homepage section order — unchanged
 
-No price exists anywhere in this codebase today. Per client direction (2026-08-18): ship **round placeholder prices**, clearly marked, so cart math and the UI are demonstrable — never a client-approved figure.
+Promo bar · Header · Hero · Shop/Product Grid · Trust strip · New Born · Size selector · FAQ · Look Closer · Footer.
 
-- Store as `[TODO: client]`-style placeholders, e.g. `priceByPack: { 30: 45000, 50: 70000 }` (poisha; ৳450 / ৳700) with a `// TODO: client — placeholder price, not confirmed` comment at the data source.
-- Render with the existing numerals decision (`src/lib/numerals.ts`, Western digits both locales).
-- The size-selector and product-grid UI must not visually distinguish placeholder prices from real ones (no "demo price" badge in the UI itself) — the marker lives in code/comments, per the same pattern already used for `[TODO: client]` copy elsewhere on the site. This keeps the demo presentable while keeping the paper trail honest.
-- Acceptance criteria §12 gets a new line for this: no price ships to production without being replaced by a client-confirmed figure.
-
-"Parenting Journey" (Conception, Pregnancy, New Born, Baby, Family) are informational stages, not products — they have no real products and their links stay `#` placeholders. Do not invent products, prices, or images for them.
-
-### 4.2 "Our Products" categories — placeholder catalogue, not invented photography
-
-"Our Products" (Diapers Line, Adult Diapers, Baby Wipes, Face Wipes) *are* product categories, and NeoCare's roadmap is to sell all four — but only the Diapers Line has real inventory today (§4). Per client direction (2026-08-18): give each of the other three a **placeholder product grid** now, reusing existing NeoCare diaper photography (`public/product/**` — the same cutout/pack/feature-crop images already used elsewhere on the site), so the storefront reads as complete rather than as three dead nav links. This is the same "ship a marked placeholder, don't invent real content" move as §4.1's placeholder prices — the images are *real NeoCare photography*, not AI-generated or stock (non-negotiable 3 still holds), they're simply the wrong product's photography standing in until real Adult Diaper / Baby Wipes / Face Wipes photography exists.
-
-- Each of the three placeholder categories gets 3–4 cards, built from existing images (vary which crop/angle each card uses so the grid doesn't look like a single repeated tile), with a size/variant name that's honestly a placeholder (e.g. "Adult Diapers — Regular", not a fabricated real-sounding SKU) and a placeholder price per §4.1's rules.
-- **Every placeholder card, and the category page itself, carries an explicit `// TODO: client — placeholder photography, replace with real Adult Diapers / Baby Wipes / Face Wipes product shots` marker at the data source** — same code-level paper trail as `[TODO: client]` copy and placeholder prices. Unlike prices (which look identical to real ones in the UI per §4.1), do not present a Regular NeoCare diaper photo as if it were literally an Adult Diaper — a small, honest "Coming soon" or "Preview" label on these three category pages (not on the real Diapers Line) keeps this from reading as a false product claim to a real visitor while the layout/UX is still fully demonstrated.
-- These three categories are still **not real, purchasable products**: their `AddToCartButton`s may exist for UX demonstration, but do not wire them into the same cart flow real Diapers Line products use without re-confirming with the client — the risk is a visitor "buying" an Adult Diaper that doesn't exist. Default to disabling add-to-cart on these three categories (button present, disabled, "Coming soon") unless told otherwise.
-- Diapers Line itself (the real product) does **not** get this treatment — it already has real data per §4.
+Scroll budget still **≤ 900vh**. Re-measure after the header height change.
 
 ---
 
-## 5. Sections — homepage order
+## 6. Products
 
-### 5.0 Order (top to bottom)
+### 6.1 Product card
 
-1. **Header** (§5.1)
-2. **Hero** (unchanged, §5.1a)
-3. **Shop / Product Grid** (NEW, §5.2)
-4. **Trust strip** (unchanged, §5.3)
-5. **New Born** (unchanged, §5.4)
-6. **Size selector** (unchanged behaviour, new "Add to cart" action, §5.5)
-7. **FAQ** (unchanged, §5.6)
-8. **Look Closer** (MOVED from directly after the hero, §5.7)
-9. **Footer** (unchanged, §5.8)
+`src/components/product/ProductCard.tsx`. Keep its current props, quick-add gate, and `AddToCartButton` nesting. Change:
 
-Total landing scroll budget: still **≤ 900vh**. Moving Look Closer doesn't change its own scroll cost (§5.7's `end: '+=550%'` is untouched) — re-verify the total after the Product Grid and its now-larger footprint are added.
+1. **Tile radius `rounded-tight` → `rounded-soft`** (12px, matching the kit's `rounded-xl`). Apply in all three places the product tile appears: `ProductCard`, the PDP gallery image (§6.3), and the `/category/{slug}` placeholder cards.
+2. **Remove the hover scale on the image.** `group-hover:scale-105` goes; the reference kit has no hover transform anywhere and `DESIGN.md` §8 forbids one on commerce surfaces. The card's affordance is the quick-add reveal, which is enough.
+3. Everything else stays: `aspect-square`, `border border-hairline`, `bg-surface-alt`, `object-contain p-8`, name at `type-body font-semibold text-fg`, price at `type-body text-fg-muted`, quick-add as a `h-9 w-9 rounded-pill` icon button at `absolute bottom-3 left-3`, always visible below `sm` and `opacity-0 sm:group-hover:opacity-100` above it.
 
-### 5.1 Header
+`object-contain`, not `object-cover`: the diaper photography is a cutout, and cover would crop the product.
 
-Sticky. Transparent over hero → `--nc-paper` + `--shadow-sm` after 80px scrolled. Height 64px mobile / 80px desktop.
+### 6.2 Product grid — unchanged
 
-Layout, left to right (desktop): logo · nav (centre) · **search** · **cart icon with item-count badge** · language toggle. Mobile: hamburger (opens a full nav drawer, search input at its top per the reference site's mobile pattern) · logo · cart icon.
+`src/components/sections/ProductGrid.tsx` already matches: heading and intro grouped in one `<div>` laid out `flex items-end justify-between`, then `grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3` over all five products. No pagination, no "View all" — the grid renders the entire catalogue, so the link would point at an identical list. Content keys `shop.title` / `shop.intro` / `shop.quickAdd` unchanged.
 
-**Nav items — unchanged, do not add or remove:** Features · Our Products (dropdown: Diapers Line, Adult Diapers, Baby Wipes, Face Wipes) · Parenting Journey (dropdown: Conception, Pregnancy, New Born, Baby, Family) · New Born · Find your size · FAQ. Still no cart-icon-leads-nowhere problem — the cart icon now genuinely opens the drawer (§6).
+### 6.3 Product detail page — re-laid-out
 
-**Link targets, updated:** Diapers Line → `/products` (§5.2b's real catalogue). Adult Diapers / Baby Wipes / Face Wipes → `/category/{slug}` placeholder grids (§4.2). All of Parenting Journey stays `#` — no page exists yet.
+`src/app/[lang]/product/[slug]/page.tsx`. Replace the current two-column `md:grid-cols-2` layout with the reference kit's 12-column gallery-overlap grid.
 
-**Search:** a client-side filter over the five-product catalogue (§4) — no backend/API call, the dataset is tiny. Desktop: an input in the header that expands or opens a small results popover (product name, thumbnail, price) on typing, matching the reference site's inline pattern. Mobile: an input at the top of the nav drawer. Selecting a result navigates to that product's PDP (§5.2b). Empty/no-match state: plain "No products found" text, no dead-end.
+**Page shape:**
 
-**v2.1 — confirmed unchanged.** Re-diffed against the reference's actual header markup (`app/layout.tsx`): its structure (contained-width bar, logo+nav left/centre, search+cart right, sticky+blur) is already what §5.1 describes. The reference header is *always* solid/blurred; NeoCare's is transparent-over-hero then solid after 80px scrolled. Re-evaluate this once §5.1a's new hero (dimmed-photo background, not full-strength) ships — a transparent header over a lighter, more washed-out hero may read differently than it did over the old high-contrast photo. Not changed in this pass; flag if it looks wrong once built.
+```
+lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8
+  header   → lg:col-span-5 lg:col-start-8
+  gallery  → mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0
+  controls → mt-8 lg:col-span-5
+```
 
-### 5.1a Hero — restructured, v2.1
+DOM order is header, gallery, controls — the grid placement puts the gallery on the left visually while the product name stays first in the reading order. Do not reorder the DOM to match the visual layout.
 
-**v1.0/v2.0 treatment (superseded):** full-bleed photo as the section's entire background, a dark gradient scrim over it for text contrast, headline+subhead+CTA bottom-anchored across the full width.
+**Header block:** `<h1>` (product name) and price in a `flex justify-between`, both `type-h3 font-semibold text-fg`. Then the facts row (§6.5) at `mt-4`.
 
-**v2.1 treatment**, matching the reference's `hero.tsx` structure with NeoCare's own photo and colour theme:
+**Gallery:** inner grid `grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8`. First image `lg:col-span-2 lg:row-span-2`; every subsequent image `hidden lg:block`. All images `rounded-soft border border-hairline`, `object-contain` on `bg-surface-alt`.
 
-- **Layout:** contained width (same `--container-content` token as every other section, not full-bleed), generous vertical padding, a left-aligned text column capped at a readable measure (`measure` token) — headline, subhead, then the CTA. This is the reference's `max-w-2xl` text-column shape, not a hardcoded pixel value.
-- **Background:** the hero photo (`hero-mobile.webp` / `hero-desktop.webp`, same art-directed pair as before — no new asset needed) fills the section as a **background layer at reduced opacity**, sitting behind the text column, not in front of it. This replaces the scrim-over-full-strength-photo treatment: instead of darkening a bright photo enough to read text on top, the photo itself is dimmed so it reads as texture/atmosphere rather than a competing foreground image. Use NeoCare's own surface tokens (`--color-bg` / `--nc-cream` family) as the base the dimmed photo sits over, so the section still resolves to NeoCare's palette, not a grey wash. **Opacity: 45%** (`opacity-45`) — raised from the initial 15% per client direction (2026-08-18, "+30 percent") for more visible photo presence; this is a meaningfully stronger image than the first pass, so §5.1a's contrast re-verification below matters more here, not less.
-- **Decorative element:** the reference fills the empty right-hand space (where there's no photo) with a subtle gradient. Here that space already has the dimmed photo — no separate gradient needed; don't add one on top of the photo, it'll look muddy.
-- **CTA:** keep the existing single button (`t.hero.cta`, "Find your size" → `#sizes`). The reference shows two buttons (primary + secondary "Our Story") because it has two real destinations; NeoCare has one meaningful CTA at this point in the page (a second "About us"-style link isn't in scope here) — don't add a second button just to match the count.
-- **Contrast — re-verify, don't assume it's fine.** At 45% opacity the photo is a real presence, not a faint texture — the "dominated by the solid base colour" reasoning from the 15% version is weaker now. Sample actual rendered pixels once built, same method as the Stage 4 check (`CLAUDE.md`), and confirm ≥4.5:1 for the headline and subhead against the dimmed photo + base surface colour, at 45% opacity specifically. Do not reuse the old full-bleed scrim gradient values; they were tuned for a different treatment and don't transfer. If 45% fails the ratio in the photo's busier regions (the headline sits over whatever part of the image is behind it), the fix is a text-side treatment (drop-shadow, or a light scrim behind just the text column) rather than lowering the opacity back down, since the opacity value is now a client-specified target, not a free variable.
-- Desktop `object-position: bottom` fix from the 2026-08-18 session carries over unchanged — it's about which part of the photo shows, still relevant now the photo is a background layer instead of a foreground one.
+**Which images may appear — non-negotiable 3 applies.** Image one is `SizeRow.image` (the Medium pack render, or the product cutout). Images two onward come **only** from `public/product/features/*.webp` — the five real close-up crops of the actual product, already captioned in `en.json` as `features.*.imageAlt`. Pass them with those existing alt strings.
 
-### 5.2 Shop / Product Grid — NEW
+- These crops are real photography of the real diaper, which is identical across sizes, so showing them on any size's page is accurate.
+- **Do not present them as alternate angles of the pack**, and do not generate, upscale, mirror or recolour an image to fill a grid cell.
+- `public/newborn/cutout-flatlay.*` stays out of the gallery entirely — the navel cutout appears in the New Born section only (non-negotiable 4).
+- If fewer than three images are available for a product, the inner grid renders what exists and the `lg:grid-rows-3` track collapses; the controls column then sets the row heights. That is the correct degradation — do not pad the grid.
 
-Directly below the hero, mirroring the reference site's `Hero → Featured Products` opener.
+**Controls column, in this order,** with the spacing from `DESIGN.md` §3.1:
 
-- Section heading + one-line intro (new copy keys, plain and factual — no performance claims, per non-negotiable 3/§12).
-- A responsive grid of **product cards**, one per diaper size (5 total): 1 column mobile, 2 columns ≥640px, 3 columns ≥1024px — same breakpoints as the reference `ProductGridSkeleton` (`lg:grid-cols-3`).
-- **`ProductCard`** (`components/product/ProductCard.tsx`), modeled on the reference `product-card.tsx`:
-  - Square (`aspect-square`) image, rounded corners, `object-cover`. Primary image from `SizeRow.image`; no secondary hover-swap image required (most sizes share one cutout image — a fabricated "alternate angle" would violate non-negotiable 3).
-  - Below the image: product name (size label) and price — a single value, or a `min – max` range when the product has multiple pack variants (Medium).
-  - The whole card links to `/product/{slug}` (§5.2b).
-  - A quick-add affordance (button that adds the default/only variant straight to the cart without leaving the grid) **only** when the product has a single pack-size variant — sizes with multiple packs (Medium) require the visitor to choose a pack size, so quick-add is omitted there and the card links through to the PDP instead. This mirrors the reference site's `singleVariant` gate in `product-card.tsx` — do not build a size-picker inside the card itself.
-- No pagination needed (only 5 products) — skip the reference site's `listing-pagination.tsx` entirely.
+1. **Size row** (§6.4) — the five sizes as cross-links.
+2. **Pack row** (§6.4) at `mt-8` — the product's pack variants.
+3. **Add to cart** at `mt-8` — `AddToCartButton`, full width, the §6.1 primary-CTA shape from `DESIGN.md` §6.1.
+4. **Description** at `mt-10` — `type-small font-semibold text-fg` label, body at `mt-4 type-body text-fg-muted`.
+5. **Feature bullets** at `mt-8 border-t border-hairline pt-8` — label, then `list-disc space-y-1 pl-5 type-body text-fg-muted marker:text-ink-300`, each `<li>` with `pl-2`.
+6. **Back to the size finder** — the existing `pdp.backToFinder` link, `type-small font-semibold text-brand hover:underline`.
 
-#### 5.2a v2.1 — layout parity fixes
+`generateStaticParams` over the five slugs. Fully static, no data fetching. Keep `priority` on the first gallery image only.
 
-Re-diffed against the reference's real source (`components/sections/product-grid.tsx`, `components/product-card.tsx`, `components/quick-add-button.tsx`, not just its skeleton/loading state, which is what v2.0 was built against). Four concrete deltas:
+### 6.4 Size row and pack row — the two picker slots
 
-1. **Heading row.** The reference wraps the title+description together in one `<div>`, and lays that div out against a "View all" link with `flex items-end justify-between`. Match this structure — title and intro stay together on the left, in a flex row (not a fully centred stack).
-2. **Card corner radius — less round.** The reference's image tile uses `rounded-2xl` (16px); v2.1's first pass used `--radius-card` (`rounded-card`, 20px), which read noticeably rounder side-by-side. A second pass at `--radius-soft` (12px) still read too soft against the reference's crisper corners on review — settled on `--radius-tight` (`rounded-tight`, 6px, the sharpest step in the existing scale) instead, on the product tile everywhere it appears: `ProductCard`, the PDP gallery image, and the `/category/{slug}` placeholder cards. Everything else that uses `rounded-card` (header dropdowns, the New Born marquee, `SizeSelector`'s card, `ProductSequence`'s cards) is untouched — this is scoped to the product-tile family only.
-3. **Quick-add button — restyled to match exactly.** The reference's quick-add (`quick-add-button.tsx`) is a **small circular icon button** (`h-9 w-9 rounded-full`, a shopping-bag glyph, no visible text), positioned `absolute bottom-3 left-3` inside the image — not a labelled pill in the top-right corner. Visibility: opacity-100 on mobile (always visible — no hover on touch), `opacity-0` until `group-hover` on desktop. Carry over the icon-button shape, the bottom-left position, and the hover-reveal behaviour; the reference's tooltip (a Radix dependency this project doesn't have) is replaced by a plain `aria-label` — same accessible name, no new dependency.
-4. **"View all" link — deliberately omitted, not copied.** The reference shows `limit=6` "featured" products with a "View all" link through to the full catalogue, because their catalogue is large. NeoCare's Product Grid already renders **all five** real products — there is no larger catalogue behind a "View all" link to reveal, so copying it verbatim would link to a page showing the identical five cards. Skip it. **Flagging this as a judgment call, not a silent deviation** — if the client wants the link anyway (e.g. for visual parity even though it's redundant), say so and it goes in pointing at `/products`.
+The reference kit stacks a colour picker over a size picker. NeoCare has neither axis in that form, and inventing one is forbidden. Both slots are filled with real navigation and real variants:
 
-Colour tokens throughout: reference's `bg-secondary`/`border-border`/`text-foreground`/`text-muted-foreground` map to NeoCare's `bg-surface-alt`/`border-hairline`/`text-fg`/`text-fg-muted` — already how v2.0's `ProductCard` was built. No colour-token change needed here; §5.1a is where the colour-theme work actually is this round (the hero).
+**Size row** — label `pdp.sizeLabel`, then all five sizes as chips. The current product's chip renders in the selected state; the other four are `<Link>`s to their own product pages. This is cross-navigation wearing the kit's chip row, and it earns the slot: a visitor who landed on Large from search can reach Medium without going back to the grid.
 
-### 5.2b Product detail page (PDP) — NEW
+**Pack row** — label `pdp.choosePack`, then one chip per entry in `SizeRow.packs`, each showing the pack count and its price. Radio-group semantics (§2's native-radio pattern); the first pack is selected by default. This replaces the current stacked `rounded-card` bordered rows, which do not match the kit.
 
-Route: `app/[lang]/product/[slug]/page.tsx`.
+Chip styling for both rows, per `DESIGN.md` §6.4: `grid grid-cols-3 gap-3 sm:grid-cols-5`, chip `rounded-pill border border-hairline bg-surface px-3 py-3 type-small font-semibold uppercase text-fg sm:flex-1`, hover `bg-surface-brand`, selected `border-transparent bg-brand text-fg-inverse hover:bg-brand-hover`.
 
-Layout (desktop: two columns; mobile: stacked, image first):
-- **Gallery** — the size's real photography (pack render where it exists, i.e. Medium; the product cutout otherwise, per the existing `sizes.ts` comment). A single real image is fine; do not generate additional angles.
-- **Info column** — size name, weight range (e.g. "4–9 kg"), price (or pack-size selector + price when multiple packs exist, e.g. Medium's 30-pack / 50-pack), an `AddToCartButton`, and the size's descriptive copy (reuse/extend existing size-selector copy — do not write new performance claims).
-- Below the fold: link back to the size selector (`#sizes` on the homepage) for visitors who arrived via search/grid without knowing their size yet.
+`uppercase` is written verbatim; the `[lang="bn"]` rule in `globals.css` neutralises it on `/bn`. **Never fix a chip width** — `sm:flex-1` only. "New Born" is three times the width of "XL" before Bangla adds 15–30%.
 
-`generateStaticParams` over the 5 slugs; this is a fully static route, no dynamic data fetching.
+### 6.5 Facts row — the rating slot
 
-### 5.3 Trust strip — unchanged
-Horizontal band, `--color-bg-brand-soft`. Incepta mark · "Made in Bangladesh" · "Trusted since [TODO: client]". Static, no animation.
+The reference kit's rating row is value · five stars · `·` · review count. **NeoCare has no rating or review data and will not fabricate either** (non-negotiable 7). Keep the row's position and metrics; replace its content with the product's real facts:
 
-### 5.4 New Born — unchanged
-Hard visual break, `--color-bg-brand-soft`, "New Born · 0–4 kg" badge, navel-cutout copy, and the endless marquee gallery built 2026-08-18 (§ in `CLAUDE.md`). No changes here.
+```
+{weight range}  ·  {pack sizes} pcs
+```
 
-### 5.5 Size selector — behaviour extended
+- Position `mt-4` under the header block, all `type-small`.
+- Weight range from the existing `sizes.weightRange` template. Pack sizes from `SizeRow.packs`.
+- Separator: a `·` at `ml-4`, `text-ink-300`, `aria-hidden="true"`.
+- No `<StarIcon>`, no `--color-rating` token, no review count, no "See all N reviews" link.
 
-Range input, 3–25 kg, unchanged recommendation logic (`sizes.ts`, `recommendFor`). The recommended-size card's CTA changes from a dead link to a real `AddToCartButton` for that size's default/first pack variant, plus a "View details" link to the PDP. Alternate-size chips (existing behaviour: every matching size shown, never hidden) link to their own PDPs.
+### 6.6 Size selector section — unchanged
 
-Still: real `<input type="range">`, `aria-valuetext`, visible numeric readout, keyboard-operable.
-
-### 5.6 FAQ — unchanged
-Native `<details>`/`<summary>`, `FAQPage` JSON-LD, twelve questions, `[TODO: client]` markers preserved.
-
-### 5.7 Look Closer — relocated, not rebuilt
-
-This is v1.0's S3–S8 pinned product-reveal sequence (turntable + five feature callouts). **Move the section lower in the page (to just above the footer); do not re-architect its internals** — the one-ScrollTrigger/one-pin/one-timeline structure, the mobile stacked-card fallback, the `holdFrame` lock, and the arrow-anchor system all stay exactly as built. Re-run the §9 performance gates and the §8 "pin disabled" a11y check after the move, since its position in the DOM/scroll order has changed even though its internals haven't.
-
-### 5.8 Footer — unchanged, CTA button removed
-Logo, contact, DBID, social, copyright 2026. The standalone "Shop Now" button (v1.0 S12) is removed — the Product Grid (§5.2) is now the shopping entry point, and the footer's job goes back to being purely informational.
+`SizeSelector`'s range input, `recommendFor` logic, `aria-valuetext`, numeric readout and alternate-size chips all stay. Its recommended-size card keeps its `AddToCartButton` and its "View details" link to the PDP. Its chips move to the §6.4 styling so the two chip rows on the site match; nothing else changes.
 
 ---
 
-## 6. Cart
+## 7. Cart
 
-Client-side only — a React Context (`CartProvider`) backed by `localStorage`, no server, no database, no payment SDK. Mirrors the reference site's cart *shape* (drawer, item rows, subtotal, checkout button) without adopting its Stripe/`commerce-kit` backend.
+### 7.1 Cart drawer — kept, internals restyled
 
-### 6.1 State
-Cart items: `{ slug, packSize, quantity }[]`. Persist to `localStorage` on every change; hydrate on load (guard against SSR/localStorage mismatch the same way the rest of the site guards client-only state, e.g. the existing scroll-position `useEffect` pattern in `Header.tsx`).
+`CartSidebar.tsx` stays. The header cart icon opens a drawer, not a page — that is existing, signed-off behaviour and the reference kit has no header-cart pattern to contradict it. The native `<dialog>` + `showModal()` construction stays: it gives focus trapping and `Escape`-to-close for free.
 
-### 6.2 Cart icon
-`CartButton` in the header (§5.1): cart glyph + item-count badge (only shown when count > 0), opens the drawer. No page navigation.
+Restyle its internals to the reference kit's anatomy:
 
-### 6.3 Cart drawer
-Slide-out panel (reference site's `Sheet`/`CartSidebar` pattern — use whatever primitive this project's `components/ui` already has for overlays, or add a minimal one; do not pull in a new UI kit wholesale).
-- Empty state: icon + "Your cart is empty" + a "Continue shopping" action that closes the drawer.
-- Populated state: scrollable list of `CartItemRow`s (thumbnail, name, pack size, quantity stepper, remove), a subtotal line (§4.1 placeholder prices, summed via `lib/cart.ts`), a "Shipping and taxes calculated at checkout" note, a checkout button, and a "Continue shopping" text action.
+- **Row list:** `-my-6 divide-y divide-hairline`, each row `flex py-6`. The `-my-6` is load-bearing — without it the first row sits 24px below the panel edge (`DESIGN.md` §3.1).
+- **Row layout:** `size-24` thumbnail at `rounded-tight border border-hairline`, then `ml-4 flex flex-1 flex-col`. Inside: title and line price in a `flex justify-between text-base font-medium` → `type-body font-semibold text-fg`; pack label at `mt-1 type-small text-fg-muted`; then `flex flex-1 items-end justify-between type-small` holding the quantity on the left and the Remove button on the right.
+- **Quantity stepper** keeps its current `rounded-pill border border-hairline` group, real `<button>`s with `aria-label`s, and `aria-live="polite"` on the value.
+- **Remove** becomes the inline text button from `DESIGN.md` §6.1: `font-semibold text-brand hover:text-brand-hover disabled:opacity-70`, with the `gap-2` spinner slot.
+- **Missing thumbnail** falls back to a `bg-surface-alt` box with the cart glyph at `text-ink-500` centred in it.
+- **Empty state** keeps its current copy (`cart.emptyTitle`, `cart.emptyBody`, `cart.continueShopping`); the glyph moves to `text-ink-500`.
+- Row enter/exit uses the CSS keyframes from `DESIGN.md` §5, not a motion library.
 
-### 6.4 Checkout — placeholder, not payment
+### 7.2 Cart page — the 7/5 layout
 
-`app/[lang]/checkout/page.tsx` is a **static page**, not a payment flow: order summary (read from the cart) plus explicit placeholder copy (e.g. "Checkout isn't live in this demo yet") and a way back to shopping. Non-negotiable 6 applies: nothing on this page may imply money changed hands or an order was placed. No form fields that look like they collect payment details.
+The reference kit's cart is a full page: an item list beside an order-summary panel. **`src/app/[lang]/checkout/page.tsx` takes that layout.** It is already the route the drawer's CTA points at, and its job — show what is in the cart, take no payment — is exactly the reference cart page's job.
+
+```
+lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16
+  cart list → lg:col-span-7
+  summary   → mt-16 lg:col-span-5 lg:mt-0
+```
+
+`lg:items-start` is required, or the panel stretches to the list's height.
+
+**Cart list section:** `<h1>` at `mb-8 type-h3 font-semibold text-fg`, then `border-t border-hairline pt-8`, then a `flow-root` wrapping the same row list as §7.1. Rows are shared between the drawer and this page — extract `CartItemRow` once, use it in both.
+
+**Order summary panel:** `mt-16 rounded-soft bg-surface-brand px-6 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8`, no shadow.
+
+- `<h2>` at `type-body-lg font-semibold text-fg`.
+- **The CTA slot at `mt-6`, above the line items.** This ordering is the kit's and it is deliberate.
+- Line items at `mt-6 space-y-4`, each `flex items-center justify-between`, every row after the first prefixed `border-t border-hairline pt-4`. Label `type-small text-fg-muted`, value `type-small font-semibold text-fg`.
+- Total row separated the same way, both sides `type-body font-semibold text-fg`.
+- Centred "or Continue shopping" at `mt-6 type-small text-fg-muted`, link `font-semibold text-brand hover:text-brand-hover`.
+- Muted text inside the panel resolves to `--nc-ink-700` via the `.bg-surface-brand` rule — do not override it.
+
+**The CTA slot holds the placeholder, not a checkout button.** Non-negotiable 6: nothing on this page may imply money changed hands or an order was placed. Render `checkout.notLive` in the CTA slot's position, styled as static copy — not as a disabled button, which reads as "temporarily unavailable" rather than "not built". No form fields. No "Proceed to checkout" button anywhere on this page. `checkout.backToShopping` stays.
+
+**Judgment call, flagged rather than made silently:** the reference kit's cart page and NeoCare's checkout page are merged into this one route rather than shipped as two (`/cart` for the list, `/checkout` for payment). Two routes would mean a `/checkout` that exists only to say it does not work. If the client wants the split anyway, say so and it goes in — `/cart` gets this layout with a "Proceed to checkout" button, `/checkout` keeps the placeholder page.
+
+**Summary rows.** Subtotal is real, summed via `lib/cart.ts`. Shipping renders `cart.shippingNote` as its value, not a figure — non-negotiable 7 forbids a delivery cost the client has not confirmed. Total equals subtotal until a real shipping figure exists. **Do not add a tax row**; no VAT treatment has been confirmed.
+
+### 7.3 Cart state — unchanged
+
+`CartContext` + `localStorage`. Items are `{ sizeKey, pack, quantity }[]`. Persist on every change, hydrate on load, guard the SSR mismatch the way `Header.tsx` already guards client-only state. Cart math stays in `lib/cart.ts` and stays tested.
 
 ---
 
-## 7. Motion guards — unchanged
-`src/lib/useCanAnimate.ts`, the measured 1200ms frame-load guard, Lenis desktop-only. See v1.0 §6 (renumbered from here as §6 → §7); no content changes.
+## 8. Skeletons
+
+Every `<Suspense>` fallback is a hand-built skeleton matching the real node's box: same borders, same radii, same widths, bars filled `bg-ink-100` with `animate-pulse`.
+
+- **Cart row skeleton:** `-my-6 divide-y divide-hairline` list, one `flex animate-pulse py-6` row, `size-24 rounded-tight border border-hairline bg-ink-100` thumbnail, then bars at `h-5 w-24` / `h-5 w-20` / `h-4 w-32` / `h-4 w-16` / `h-4 w-14` in the row's own positions.
+- **Order summary skeleton:** `mt-6 space-y-4`, one `flex items-center justify-between` per row with `h-5 w-24` and `h-5 w-16` bars, rows after the first prefixed `border-t border-hairline pt-4`, total row at `h-6`.
+- **Header cart count skeleton:** `ml-2 h-4 w-3 rounded-tight bg-ink-100` (§5.2).
+
+**No spinner for a page-level load.** A spinner appears only inside a control the visitor just activated — add-to-cart, remove-from-cart. Measure the loaded node and copy its dimensions; a mismatched skeleton costs CLS against §11.
 
 ---
 
-## 8. Bilingual — unchanged, one addition
+## 9. Content keys
 
-- Routes `/en` and `/bn`. **`en` is default** (overrides this spec's original `bn`-default call, per client request 2026-08-18 — the audience is still Bangladeshi; this is a site-presentation choice, not a reversal of who the copy is written for).
-- Product names, sizes, prices, cart/checkout strings, and search placeholder text all go through `src/content/{en,bn}.json` like everything else — **do not machine-translate the new Bangla strings**; ship them as `[BN]`-prefixed placeholders until the client supplies real copy, same as any other pending string.
-- Never fix product-card, cart-drawer, or search-input widths to English text. Bangla runs 15–30% longer.
+Everything already in `src/content/{en,bn}.json` keeps its current wording. **Do not reword an approved string to fit a layout.**
+
+Six keys are new. Ship each `[TODO: client]`-marked, and ship the Bangla side `[BN]`-prefixed — **do not machine-translate**.
+
+| Key | Purpose | Ship as |
+|---|---|---|
+| `promo.text` | promo bar (§5.1) | `[TODO: client]` — no offer, threshold or shipping promise may be invented |
+| `pdp.sizeLabel` | size row label (§6.4) | "Size" / `[BN]` |
+| `pdp.descriptionTitle` | description block label (§6.3) | "Description" / `[BN]` |
+| `pdp.description.{sizeKey}` | per-size description body (§6.3) | `[TODO: client]` — one per size. No performance claim, no absorbency figure, no duration. |
+| `cart.total` | order-summary total row (§7.2) | "Total" / `[BN]` |
+| `cart.shippingLabel` | order-summary shipping row label (§7.2) | "Shipping" / `[BN]` |
+
+**Reused, not new:** the feature-bullets block (§6.3 item 5) takes its label from the existing `product.featuresTitle` ("The five features") and its five bullets from the existing `features.*.title` strings. Those are approved copy already on the page — reuse them rather than writing new bullet text.
 
 ---
 
-## 9. Accessibility — WCAG 2.1 AA, unchanged + cart/search additions
+## 10. Accessibility — WCAG 2.1 AA
 
-- Everything in v1.0 §8 still applies.
-- Cart drawer: focus-trapped while open, `Escape` closes it, focus returns to the cart button on close, announced via `role="dialog"`/`aria-label`.
-- Cart badge count and "item added" feedback: `aria-live="polite"`, not a silent visual-only change.
-- Search results popover: keyboard-navigable (arrow keys / Enter), not mouse-only.
-- Quantity steppers: real buttons with `aria-label`s ("Decrease quantity", "Increase quantity"), not bare `+`/`-` glyphs with no label.
+Everything in v2.1 §9 still applies. v3.0's layout changes add:
+
+- **Picker rows** are `<fieldset>` + native radios with an `aria-label` on the fieldset. Arrow-key traversal and group semantics come from the platform. The size row's four cross-links are links, not radios — a chip that navigates must be a `<Link>`.
+- **Focus ring** is `focus:ring-2 focus:ring-ring focus:ring-offset-2` on every commerce control, over the global `:focus-visible` floor.
+- **PDP DOM order** is header → gallery → controls, so a screen reader hears the product name before the images regardless of the visual grid placement.
+- **Decorative marks** — the `·` separator (§6.5) and list bullets — carry `aria-hidden="true"`.
+- **Cart drawer** stays focus-trapped, `Escape`-closable, returns focus to the cart button, `role="dialog"` with an `aria-label`.
+- **Cart badge and "item added"** stay `aria-live="polite"`.
+- **Quantity steppers** stay real buttons with `aria-label`s.
+- **Search results popover** stays keyboard-navigable.
+- **Contrast** — `DESIGN.md` §1.6. Sample real rendered pixels for the promo bar, the order-summary panel's muted text, and the header nav's `text-fg-muted` on the transparent-over-hero state. That last one is the risk case: `--nc-ink-500` over a 45%-opacity photo is not the same measurement as on white.
 
 ---
 
-## 10. Performance gates — unchanged budgets, re-verify after this build
+## 11. Performance gates — unchanged budgets
 
 | Metric | Budget |
 |---|---|
@@ -307,58 +314,62 @@ Slide-out panel (reference site's `Sheet`/`CartSidebar` pattern — use whatever
 | Bangla font, one weight | ≤ 100 KB |
 | Total, first view | ≤ 1.2 MB |
 
-The cart/search additions are client components with real interaction logic — watch the JS budget specifically; if `CartProvider` + `ProductGrid` + search push past 180 KB gzipped, code-split the cart drawer and search popover behind their own dynamic imports (both are only needed after a click, never on first paint).
+§2's no-new-dependencies rule is what keeps the JS budget reachable. The PDP gallery is the new risk: up to six images per page. Every gallery image past the first is `hidden` below `lg`, so it must not be fetched on mobile — size it with `sizes` and let `next/image` skip it, and verify on a real 375px viewport that only one image is requested.
 
 ---
 
-## 11. Acceptance criteria
+## 12. Acceptance criteria
 
-- [ ] Mobile (375px) reviewed and approved for every new surface (grid, PDP, cart drawer, search) before desktop polish
-- [ ] Page fully usable with JS disabled (cart/search degrade to "unavailable," not broken — no dead click targets)
-- [ ] `prefers-reduced-motion` renders end states, animates nothing (grid, drawer, and Look Closer all respected)
-- [ ] Turntable 404s degrade silently to static
-- [ ] Navel cutout appears in the New Born section only
+- [ ] Mobile (375px) reviewed and approved for the promo bar, header, product grid, PDP and cart page before any desktop polish
+- [ ] Only one gallery image is requested at 375px
+- [ ] Page usable with JS disabled — cart and search degrade to "unavailable", no dead click targets
+- [ ] `prefers-reduced-motion` renders end states and animates nothing
 - [ ] No hardcoded hex outside `tokens.css`
-- [ ] Both locales render; `[BN]` markers visible where copy is pending
-- [ ] No price ships as a real figure — every price is a marked placeholder until the client confirms (§4.1)
-- [ ] Cart math (line totals, subtotal, quantity changes) is correct and covered by tests, mirroring the reference site's `cart-math.test.ts`
+- [ ] No new npm dependency (§2)
+- [ ] Both locales render; `[BN]` and `[TODO: client]` markers visible where copy is pending
+- [ ] No star rating, review count, or rating figure anywhere (§6.5)
+- [ ] No delivery threshold, shipping cost, discount or tax figure anywhere (§5.1, §7.2)
+- [ ] Every price is a marked placeholder until the client confirms (§4.1)
+- [ ] Navel cutout appears in the New Born section only
+- [ ] Gallery images past the first come only from `public/product/features/` (§6.3)
 - [ ] Checkout page never implies a completed transaction
-- [ ] Total homepage scroll ≤ 900vh after the Product Grid is added
+- [ ] No hover transform on any commerce surface (§6.1, `DESIGN.md` §8)
+- [ ] Every chip and button width is intrinsic or `flex-1` — none fixed to English text
+- [ ] `uppercase` neutralised on `/bn`, verified in the browser
+- [ ] Cart math correct and covered by tests
+- [ ] Total homepage scroll ≤ 900vh after the header height change
+- [ ] Keyboard-only traversal reaches every control, including the drawer and both picker rows
+- [ ] Contrast sampled on rendered pixels for the three cases in §10
 - [ ] Performance gates met on real hardware
-- [ ] Keyboard-only traversal reaches every piece of content, including the cart drawer and search results
-- [ ] No claim on the page states a figure not confirmed by the client
 
 ---
 
-## 12. Never invent a figure — restated
+## 13. Explicitly out of scope
 
-Carried forward from v1.0, now explicitly covering commerce data: no performance percentage, no duration, and (new in v2.0) **no price**. If it isn't in this spec or supplied by the client, it isn't approved — ship the `[TODO: client]` placeholder instead.
-
----
-
-## 13. Explicitly still out of scope
-
-Restating and sharpening v1.0's non-negotiable 2, since this revision adds a cart and could be misread as opening the door to commerce infrastructure. Still out of scope:
-
-- Real payments (Stripe or otherwise), real checkout, order confirmation/emails/SMS.
-- Any backend, database, or CMS for products/orders/inventory.
+- Real payments, real checkout, order confirmation, emails, SMS.
+- Any backend, database, or CMS for products, orders or inventory.
 - User accounts, login, order history.
-- `commerce-kit` or any equivalent commerce SDK — the reference repo's *architecture* is not being adopted, only its front-end UX patterns.
-- Real Adult Diapers / Baby Wipes / Face Wipes photography, inventory, or purchasable products — those three get placeholder-photography category grids only (§4.2), add-to-cart disabled by default; do not treat them as real SKUs.
-- Products/pages for "Parenting Journey" — that dropdown's five stages stay `#` placeholders (§4).
+- `commerce-kit`, Stripe, or any commerce SDK.
+- The four npm dependencies the reference kit ships with (§2).
+- The reference kit's colour values and typography — layout only (§0).
+- A star rating or review system (§6.5).
+- Real Adult Diapers / Baby Wipes / Face Wipes photography, inventory or purchasable products (§4.2).
+- Products or pages for Parenting Journey (§4).
+- Footer changes. `Footer.tsx` is untouched by v3.0; the reference kit's footer grid is not ported.
 
 ---
 
 ## 14. Stop and ask
 
-Do not guess on these:
-
-1. **Real prices** for each size/pack — currently placeholder (§4.1). Needed before this ever goes to production.
-2. **"Trusted since [year]"** in the trust strip — no year supplied.
-3. **Size ranges** — taken from the live site, overlaps unconfirmed.
-4. **FAQ answers** — several restate policy that may be stale.
-5. **`holdFrame` index** for Look Closer — depends on the real turntable; still a placeholder.
-6. **Any performance figure** for the five features, or any product. Never invent one.
-7. **Real photography, names and prices for Adult Diapers, Baby Wipes and Face Wipes** — shipped as placeholder NeoCare-diaper photography for now (§4.2); needed before these read as real products rather than a UX preview.
-8. **Whether to enable add-to-cart on the three placeholder categories** — defaults to disabled/"Coming soon" (§4.2) until told otherwise.
-9. **Product data (name/image/price) for "Parenting Journey"**, if/when it moves from `#` placeholders to real subpages — out of scope for this revision (§13).
+1. **Promo bar copy** (§5.1) — no offer supplied, and none may be invented. The bar ships empty-or-placeholder until the client writes it.
+2. **Real prices** for each size and pack (§4.1) — needed before production.
+3. **Per-size PDP descriptions** (§9) — no approved copy exists.
+4. **Shipping cost and tax treatment** (§7.2) — the summary shows a note, not a figure, until both are confirmed.
+5. **Whether to split `/cart` from `/checkout`** (§7.2) — merged by default.
+6. **"Trusted since [year]"** in the trust strip — no year supplied.
+7. **Size ranges** — taken from the live site, overlaps unconfirmed.
+8. **FAQ answers** — several restate policy that may be stale.
+9. **`holdFrame` index** for Look Closer — depends on the real turntable.
+10. **Any performance figure** for any feature or product. Never invent one.
+11. **Real photography, names and prices** for Adult Diapers, Baby Wipes and Face Wipes (§4.2).
+12. **Whether to enable add-to-cart** on the three placeholder categories — disabled by default.
