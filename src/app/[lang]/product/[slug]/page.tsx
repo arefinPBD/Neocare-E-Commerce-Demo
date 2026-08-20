@@ -2,14 +2,36 @@ import { lang } from 'next/root-params';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
-import { AddToCartButton } from '@/components/product/AddToCartButton';
+import { PackPicker } from '@/components/product/PackPicker';
+import { SizeRowChips } from '@/components/product/SizeRowChips';
 import { getDictionary, isLocale } from '@/lib/i18n';
 import { fmt, fmtWeight, fmtMoney } from '@/lib/numerals';
-import { findBySlug, SIZES } from '@/lib/sizes';
+import { findBySlug, priceRange, SIZES } from '@/lib/sizes';
 
-/* BUILD_SPEC v2.0 §5.2b — static PDP for each of the five real diaper-size
- * products. `slug` is a regular route parameter (not root); `lang` is read
- * as a root parameter per next/root-params. */
+/* BUILD_SPEC v3.0 §6.3 — the product detail page, re-laid out on the
+ * reference kit's 12-column gallery-overlap grid. Fully static, no data
+ * fetching; `slug` is a regular route parameter and `lang` a root parameter.
+ *
+ * FEATURE_IMAGES — §6.3 is explicit about which images may appear here, and
+ * non-negotiable 3 is behind it. Image one is the product's own photograph.
+ * Every subsequent image comes ONLY from public/product/features/*.webp: five
+ * real close-up crops of the real diaper, already captioned in en.json as
+ * `features.*.imageAlt`, reused with those exact alt strings.
+ *
+ * The diaper itself is identical across sizes, so showing these crops on any
+ * size's page is accurate. They are NOT presented as alternate angles of the
+ * pack, and nothing here is generated, upscaled, mirrored or recoloured to
+ * fill a grid cell. public/newborn/cutout-flatlay.* stays out entirely: the
+ * navel cutout appears in the New Born section only (non-negotiable 4).
+ */
+const FEATURE_IMAGES = [
+  { key: 'sap', src: '/product/features/sap.webp' },
+  { key: 'cuff', src: '/product/features/cuff.webp' },
+  { key: 'ear', src: '/product/features/ear.webp' },
+  { key: 'velcro', src: '/product/features/velcro.webp' },
+  { key: 'backsheet', src: '/product/features/backsheet.webp' },
+] as const;
+
 export function generateStaticParams() {
   return SIZES.map((s) => ({ slug: s.slug }));
 }
@@ -30,66 +52,133 @@ export default async function ProductPage(
     .replace('{min}', fmtWeight(size.min, current))
     .replace('{max}', fmtWeight(size.max, current));
 
+  /* §6.5 replaces the kit's rating row, so there is no single "the price" to
+   * show beside the title on a multi-pack product. A range here, and each
+   * pack's own price on its chip below, keeps every figure attached to the
+   * thing it prices. Matches DESIGN.md §6.3's treatment on the product card.
+   * Every one of these is a placeholder (§4.1), marked at the data source. */
+  const [minPrice, maxPrice] = priceRange(size);
+  const priceDisplay =
+    minPrice === maxPrice
+      ? fmtMoney(minPrice, current)
+      : `${fmtMoney(minPrice, current)} – ${fmtMoney(maxPrice, current)}`;
+
+  const packList = size.packs.map((p) => fmt(p, current)).join(', ');
+
   return (
-    <main id="main" className="section-rhythm mx-auto max-w-(--container-content) px-4 md:px-6">
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
-        <div className="relative aspect-square overflow-hidden rounded-tight border border-hairline bg-surface-alt">
-          <Image
-            src={size.image}
-            alt={t.sizes.packAlt.replace('{size}', name)}
-            fill
-            sizes="(min-width: 768px) 50vw, 100vw"
-            priority
-            className="object-contain p-10"
-          />
+    /* §5.3 — the commerce page container. Narrower than the marketing
+       container below lg by design; do not unify the two (§7.1). */
+    <main
+      id="main"
+      className="mx-auto max-w-2xl px-4 pb-16 pt-12 sm:px-6 sm:pb-24 lg:max-w-7xl lg:px-8"
+    >
+      {/* §6.3 — DOM order is header, gallery, controls. The grid places the
+          gallery on the left visually while the product name stays first in
+          the reading order, so a screen reader hears the name before the
+          images (§10). Do not reorder the DOM to match the visual layout. */}
+      <div className="lg:grid lg:auto-rows-min lg:grid-cols-12 lg:gap-x-8">
+        {/* --- Header block ------------------------------------------- */}
+        <div className="lg:col-span-5 lg:col-start-8">
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="type-h3 font-semibold text-fg">{name}</h1>
+            <p className="type-h3 shrink-0 text-right font-semibold text-fg">
+              {priceDisplay}
+            </p>
+          </div>
+
+          {/* §6.5 — the rating slot, carrying the product's real facts.
+              NeoCare has no rating or review data and will not fabricate
+              either (non-negotiable 7): no stars, no --color-rating token, no
+              review count, no "See all N reviews" link. Same position, same
+              type-small, same mt-4 the kit gives its rating row. */}
+          <p className="type-small mt-4 text-fg-muted">
+            {range}
+            <span aria-hidden="true" className="ml-4 text-ink-300">
+              ·
+            </span>{' '}
+            {packList} {t.sizes.packUnit}
+          </p>
         </div>
 
-        <div>
-          <h1 className="type-h1 text-fg">{name}</h1>
-          <p className="type-body-lg mt-2 text-fg-muted">{range}</p>
-
-          {size.packs.length === 1 ? (
-            <p className="type-h2 mt-6 font-semibold text-brand">
-              {fmtMoney(size.priceByPack[size.packs[0]!]!, current)}
-            </p>
-          ) : (
-            <div className="mt-6 space-y-3">
-              <p className="type-small font-semibold text-fg">{t.pdp.choosePack}</p>
-              {size.packs.map((pack) => (
-                <div
-                  key={pack}
-                  className="flex items-center justify-between gap-4 rounded-card border border-hairline p-4"
-                >
-                  <div>
-                    <p className="type-body font-semibold text-fg">
-                      {fmt(pack, current)} {t.sizes.packUnit}
-                    </p>
-                    <p className="type-small text-fg-muted">
-                      {fmtMoney(size.priceByPack[pack]!, current)}
-                    </p>
-                  </div>
-                  <AddToCartButton sizeKey={size.key} pack={pack} variant="secondary">
-                    {t.pdp.addToCart}
-                  </AddToCartButton>
-                </div>
-              ))}
+        {/* --- Gallery ------------------------------------------------- */}
+        <div className="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
+            <div className="relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:col-span-2 lg:row-span-2">
+              <Image
+                src={size.image}
+                alt={t.sizes.packAlt.replace('{size}', name)}
+                fill
+                /* Only image one is ever visible below lg, so it is the only
+                   one that should be fetched there (§11). */
+                sizes="(min-width: 1024px) 58vw, 100vw"
+                priority
+                className="object-contain p-10"
+              />
             </div>
-          )}
 
-          {size.packs.length === 1 && (
-            <AddToCartButton sizeKey={size.key} pack={size.packs[0]!} className="mt-6 w-full sm:w-auto">
-              {t.pdp.addToCart}
-            </AddToCartButton>
-          )}
+            {FEATURE_IMAGES.map((img) => (
+              <div
+                key={img.key}
+                /* hidden below lg — and `sizes` is declared so next/image
+                   does not request it on a phone. Verified at 375px. */
+                className="relative hidden aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:block"
+              >
+                <Image
+                  src={img.src}
+                  alt={t.features[img.key].imageAlt}
+                  fill
+                  sizes="(min-width: 1024px) 29vw, 1px"
+                  className="object-contain p-6"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <p className="type-small measure mt-8 text-fg-muted">
-            {t.sizes.packLabel}: {size.packs.map((p) => fmt(p, current)).join(' · ')}{' '}
-            {t.sizes.packUnit}
-          </p>
+        {/* --- Controls ------------------------------------------------ */}
+        <div className="mt-8 lg:col-span-5">
+          <SizeRowChips current={size.key} locale={current} t={t} />
+
+          <div className="mt-8">
+            <PackPicker
+              sizeKey={size.key}
+              packs={size.packs}
+              priceByPack={size.priceByPack}
+              locale={current}
+              label={t.pdp.choosePack}
+              packUnit={t.sizes.packUnit}
+              addToCartLabel={t.pdp.addToCart}
+            />
+          </div>
+
+          <div className="mt-10">
+            <h2 className="type-small font-semibold text-fg">
+              {t.pdp.descriptionTitle}
+            </h2>
+            <p className="type-body measure mt-4 text-fg-muted">
+              {t.pdp.description[size.key]}
+            </p>
+          </div>
+
+          {/* §9 — the label and the five bullets are existing approved copy
+              (product.featuresTitle, features.*.title), reused rather than
+              rewritten. */}
+          <div className="mt-8 border-t border-hairline pt-8">
+            <h2 className="type-small font-semibold text-fg">
+              {t.product.featuresTitle}
+            </h2>
+            <ul className="mt-4 list-disc space-y-1 pl-5 type-body text-fg-muted marker:text-ink-300">
+              {FEATURE_IMAGES.map((f) => (
+                <li key={f.key} className="pl-2">
+                  {t.features[f.key].title}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <a
             href={`/${current}#sizes`}
-            className="mt-4 inline-block type-small font-semibold text-brand hover:underline"
+            className="mt-8 inline-block type-small font-semibold text-brand hover:underline"
           >
             {t.pdp.backToFinder}
           </a>
