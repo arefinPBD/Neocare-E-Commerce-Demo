@@ -100,9 +100,13 @@ export function Header({
         <div className="mx-auto flex h-24 max-w-(--container-content) items-center justify-between gap-2 px-4 md:px-6">
           {/* Left zone: logo, then the nav from lg up. */}
           <div className="flex flex-1 items-center gap-8">
+            {/* shrink-0 is load-bearing. The left zone is flex-1, so once the
+                nav beside it is ~640px wide the logo is the flex item that
+                gives, and `w-auto` on the <img> collapses it to zero width
+                rather than overflowing. It rendered at 0x44 before this. */}
             <Link
               href={`/${locale}`}
-              className="flex min-h-11 items-center rounded-soft"
+              className="flex min-h-11 shrink-0 items-center rounded-soft"
               aria-label={logoAlt}
             >
               {/* No `priority`: the hero image is the LCP element, and a second
@@ -110,15 +114,18 @@ export function Header({
               <Image src={logo} alt={logoAlt} className="h-9 w-auto md:h-11" />
             </Link>
 
-          {/* Desktop nav (S0: desktop only). */}
-          <nav aria-label={navLabel} className="hidden md:block">
-            <ul className="flex items-center gap-1">
+          {/* Desktop nav. lg, not md: at 768px the six items plus the search
+              field do not fit on one line, and a two-line nav bar is broken.
+              Below lg the <details> disclosure in the right zone serves the
+              same items, so nothing becomes unreachable. */}
+          <nav aria-label={navLabel} className="hidden lg:block">
+            <ul className="flex items-center space-x-8">
               {nav.map((item) =>
                 item.children ? (
                   <li key={item.label} className="group relative">
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center px-3 py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
                     >
                       {item.label}
                     </a>
@@ -141,7 +148,7 @@ export function Header({
                   <li key={item.href}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center px-3 py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
                     >
                       {item.label}
                     </a>
@@ -165,7 +172,7 @@ export function Header({
             <CartButton label={cartLabel} />
             {toggle}
 
-            <details className="relative md:hidden [&[open]>summary>svg]:rotate-90">
+            <details className="relative lg:hidden [&[open]>summary>svg]:rotate-90">
               <summary
                 aria-label={menuLabel}
                 className="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-pill text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand [&::-webkit-details-marker]:hidden"
