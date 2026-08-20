@@ -123,3 +123,67 @@ HTML confirming section order matches §5.0 exactly. Not verified in an actual
 browser (no Playwright/browser automation available in this environment) —
 still worth a manual pass for the cart drawer's focus/`Escape` behaviour and
 the search popover's keyboard nav before calling this done.
+
+# Stage 6 — v3.0 storefront (BUILD_SPEC v3.0, DESIGN.md v2.0, 2026-08-19)
+
+## Decisions taken with the client before any code was written
+
+- **Scope:** full v3.0 — homepage upper half, PDP, and cart page.
+- **`design-taste-frontend` is a judgment layer only.** It governs composition,
+  section rhythm, hero discipline and the anti-slop audit. It does NOT override
+  the spec: no Motion library, no icon library, no dark mode, no token changes.
+  Its em-dash ban and dependency defaults are explicitly declined — §2's
+  "add no dependencies" and the 180 KB budget outrank them.
+- **Reference kit:** built from the BUILD_SPEC/DESIGN.md tables alone. The
+  `shirt-shop` files named in §0 (`DESIGN-SYSTEM.md`, `tokens.css`,
+  `ui-kit.tsx`) were never delivered into the repo and are not needed.
+- **Copy:** English gets the taste skill's copy self-audit, delivered as a diff
+  for client approval and NOT applied unilaterally. `bn.json` is untouched, so
+  approving the diff makes the locales diverge in content until re-translated.
+- **Promo bar:** `promo.text` ships as an empty string, so §5.1's "render
+  nothing at all" branch is the shipped state. No offer is invented.
+- **Cart:** `/cart` and `/checkout` stay merged on the existing `/checkout`
+  route, per §7.2's default.
+- **Verification:** Playwright added as a devDependency. It is the only way to
+  check the §12 criteria that require a real browser.
+
+## Baseline measured before any v3.0 change (commit a566395)
+
+| | mobile-375 | tablet-768 | desktop-1280 | Budget |
+|---|---|---|---|---|
+| Homepage scroll (en) | 1074vh | 1347vh | 1377vh | ≤900vh |
+| Homepage scroll (bn) | 1083vh | 1364vh | 1410vh | ≤900vh |
+| Homepage JS (gz) | 150.1 KB | 198.1 KB | 198.1 KB | ≤180 KB |
+| Homepage total (gz) | 707 KB | 724 KB | 743 KB | ≤1.2 MB |
+
+Four pre-existing defects found, and what was decided about each:
+
+1. **No site chrome off the homepage.** `/products`, `/product/[slug]`,
+   `/checkout` and `/category/[slug]` rendered a bare `<main>` — no header,
+   nav, cart, language toggle or footer. §5.1–§5.3 cannot be built without
+   them. **Decision:** promo bar, `Header` and `Footer` move into
+   `app/[lang]/layout.tsx` and render for every route.
+
+2. **Scroll budget unreachable as specified.** Attribution at
+   `artifacts/baseline/scroll-*.json`: `product-sequence` is 850vh on desktop
+   (`SEQUENCE.totalVh` 750 + the 100vh pinned viewport) and the homepage
+   `ProductGrid` is 135vh desktop / 306vh mobile while rendering the same five
+   products as `/products`. Non-sequence content alone costs 527vh on desktop,
+   so even at §4.2's own 550vh pin the page lands at ~1177vh. The 900vh figure
+   was written in `NeoCare_Rebuild_Plan.md` §4.2 for a page whose S12 was a
+   CTA button, and was never re-derived after v2.1 added a full product grid.
+   **Decision:** replace the homepage grid with a compact Shop CTA carrying a
+   three-product teaser plus a link to `/products`; keep `featureVh` at 110
+   (reverting it re-breaks the readability fix in the Stage 3 notes); amend
+   §11's desktop budget to a measured figure. Mobile is expected to pass.
+
+3. **`diaper-3d.gif` is 339 KB and loaded on mobile** — 48% of the mobile
+   homepage payload, for a motion asset the rebuild plan §5 puts on desktop
+   only. **Decision:** gate it behind the same ≥768px guard `lib/motion.ts`
+   already uses, so mobile never fetches it.
+
+4. **Desktop JS over budget at baseline** (198.1 KB vs 180 KB). The 48 KB delta
+   is the guarded GSAP/Lenis chunk — the architecture working as designed.
+   **Decision:** the 180 KB gate is read against mobile, which §1
+   non-negotiable 1 defines as the primary experience and which passes with
+   30 KB of headroom. The desktop figure is recorded as a deliberate cost.
