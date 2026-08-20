@@ -111,7 +111,8 @@
       "large": "লার্জ",
       "xl": "এক্সএল"
     },
-    "packAlt": "NeoCare {size} প্যাক"
+    "packAlt": "NeoCare {size} প্যাক",
+    "viewDetails": "বিস্তারিত দেখুন"
   },
   "faq": {
     "title": "সাধারণ জিজ্ঞাসা",

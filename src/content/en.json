@@ -111,7 +111,8 @@
       "large": "Large",
       "xl": "XL"
     },
-    "packAlt": "NeoCare {size} pack"
+    "packAlt": "NeoCare {size} pack",
+    "viewDetails": "View details"
   },
   "faq": {
     "title": "Questions",

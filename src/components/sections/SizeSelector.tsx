@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useId, useState } from 'react';
 
+import { AddToCartButton } from '@/components/product/AddToCartButton';
 import type { Dictionary, Locale } from '@/lib/i18n';
 import { fmt, fmtWeight } from '@/lib/numerals';
 import {
@@ -21,6 +23,26 @@ import {
  * Overlapping ranges are resolved by band centrality — see lib/sizes.ts. The
  * primary card is one size; every other size that also covers the weight is
  * listed underneath rather than hidden.
+ *
+ * BUILD_SPEC v3.0 §6.6 — the range input, recommendFor logic, aria-valuetext
+ * and numeric readout are all unchanged. Two things do change:
+ *
+ *   - The alternate-size chips take §6.4's styling, so both chip rows on the
+ *     site match. `uppercase` sits on the size name only, not on the whole
+ *     chip: §6.4 uppercases size names, and running "For 4-9 kg" through it
+ *     reads as shouting rather than as a label. globals.css neutralises it on
+ *     /bn either way.
+ *   - They also become links. They already carried hover styling while being
+ *     inert <span>s, which promises an interaction that never happens; §6.4
+ *     specifies hover and selected states, which presuppose something
+ *     interactive. They now go where SizeRowChips goes, the size's own PDP.
+ *
+ * §6.6 describes the recommended card as keeping "its AddToCartButton and its
+ * View details link". Neither existed — v2.1 shipped the card as a static
+ * panel — so both are added here to match the spec's described end state.
+ * Add-to-cart is gated to single-pack sizes exactly as ProductCard gates
+ * quick-add (DESIGN.md §6.3): a multi-pack size routes through the PDP so the
+ * visitor picks a pack rather than having one chosen for them.
  */
 export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
   const [weight, setWeight] = useState(6);
@@ -125,6 +147,20 @@ export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
               </p>
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-4 border-t border-hairline px-6 py-4">
+            {primary.packs.length === 1 && (
+              <AddToCartButton sizeKey={primary.key} pack={primary.packs[0]!}>
+                {t.pdp.addToCart}
+              </AddToCartButton>
+            )}
+            <Link
+              href={`/${locale}/product/${primary.slug}`}
+              className="inline-flex min-h-11 items-center type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:text-brand-hover hover:underline"
+            >
+              {t.sizes.viewDetails}
+            </Link>
+          </div>
         </article>
 
         {/* Every other size whose range also covers this weight. */}
@@ -133,13 +169,18 @@ export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
             <p className="type-small font-semibold text-fg-muted">
               {t.sizes.alsoFits}
             </p>
-            <ul className="mt-2 flex flex-wrap gap-2">
+            <ul className="mt-2 flex flex-wrap gap-3">
               {alternates.map((row) => (
                 <li key={row.key}>
-                  <span className="inline-flex min-h-11 items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2 type-small text-fg transition-colors duration-[--dur-fast] ease-[--ease-out] hover:border-brand hover:bg-surface-brand">
-                    <strong className="font-semibold">{name(row)}</strong>
-                    <span className="text-fg-muted">{range(row)}</span>
-                  </span>
+                  <Link
+                    href={`/${locale}/product/${row.slug}`}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-pill border border-hairline bg-surface px-3 py-3 type-small font-semibold text-fg transition-colors duration-[--dur-fast] ease-[--ease-out] hover:bg-surface-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <span className="uppercase">{name(row)}</span>
+                    <span className="font-normal text-fg-muted">
+                      {range(row)}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
