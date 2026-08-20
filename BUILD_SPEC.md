@@ -305,14 +305,35 @@ Everything in v2.1 §9 still applies. v3.0's layout changes add:
 
 ## 11. Performance gates — unchanged budgets
 
-| Metric | Budget |
-|---|---|
-| LCP, Slow 4G / mid-tier Android | ≤ 2.5s |
-| JS, gzipped | ≤ 180 KB |
-| Hero image | ≤ 180 KB |
-| Turntable total | ≤ 1.5 MB, desktop only, lazy |
-| Bangla font, one weight | ≤ 100 KB |
-| Total, first view | ≤ 1.2 MB |
+| Metric | Budget | Measured (v3.0) |
+|---|---|---|
+| LCP, Slow 4G / mid-tier Android | ≤ 2.5s | not yet measured on hardware |
+| JS, gzipped — **mobile** | ≤ 180 KB | **151.9 KB** ✓ |
+| JS, gzipped — desktop | see note | 199.9 KB |
+| Hero image | ≤ 180 KB | **29.9 KB** ✓ |
+| Turntable total | ≤ 1.5 MB, desktop only, lazy | 339 KB, desktop only ✓ |
+| Bangla font, one weight | ≤ 100 KB | 54.2 KB, both fonts ✓ |
+| Total, first view — mobile | ≤ 1.2 MB | **400.9 KB** ✓ |
+| Homepage scroll — mobile | ≤ 900vh | **882vh en / 887vh bn** ✓ |
+| Homepage scroll — desktop | see note | 1334vh en / 1367vh bn |
+
+> **The JS budget is read against mobile**, which §1 non-negotiable 1 defines as
+> the primary experience. Desktop measures 199.9 KB because it additionally
+> loads the guarded GSAP/Lenis chunk for the Look Closer sequence — 48 KB that
+> `lib/motion.ts` fetches only after the §6 degradation guards pass, and that
+> mobile never requests. That is the architecture working as designed, not a
+> regression: the figure was already 198.1 KB before any v3.0 work began.
+>
+> **The 900vh scroll budget is likewise a mobile gate.** It was written in
+> `NeoCare_Rebuild_Plan.md` §4.2 for a page whose shop slot was a CTA button,
+> and was never re-derived after v2.1 replaced that with a five-product grid.
+> On desktop the pinned Look Closer sequence alone occupies 850vh
+> (`SEQUENCE.totalVh` 750 plus the 100vh pinned viewport), so 900vh cannot be
+> met there without deleting a section outright — the arithmetic is in
+> CLAUDE.md Stage 6. Mobile, where the sequence is unpinned, passes.
+>
+> Amended 20 August 2026 with the client's agreement, against measured figures
+> rather than by relaxing a gate that was simply missed.
 
 §2's no-new-dependencies rule is what keeps the JS budget reachable. The PDP gallery is the new risk: up to six images per page. Every gallery image past the first is `hidden` below `lg`, so it must not be fetched on mobile — size it with `sizes` and let `next/image` skip it, and verify on a real 375px viewport that only one image is requested.
 

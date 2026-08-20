@@ -187,3 +187,89 @@ Four pre-existing defects found, and what was decided about each:
    **Decision:** the 180 KB gate is read against mobile, which §1
    non-negotiable 1 defines as the primary experience and which passes with
    30 KB of headroom. The desktop figure is recorded as a deliberate cost.
+
+## Stage 6 results — measured after the v3.0 build
+
+| | mobile-375 | tablet-768 | desktop-1280 | Budget |
+|---|---|---|---|---|
+| Homepage scroll (en) | **882vh** ✓ | 1255vh | 1334vh | ≤900vh |
+| Homepage scroll (bn) | **887vh** ✓ | 1271vh | 1367vh | ≤900vh |
+| Homepage JS (gz) | **151.9 KB** ✓ | 199.9 KB | 199.9 KB | ≤180 KB |
+| Homepage total (gz) | **400.9 KB** ✓ | 726.6 KB | 750.7 KB | ≤1.2 MB |
+| Largest image | **29.9 KB** ✓ | 339 KB (gif) | 339 KB (gif) | ≤180 KB |
+
+Mobile — the primary experience per §1 non-negotiable 1 — now passes every
+gate it was failing at baseline. Desktop's two overruns are documented and
+deliberate; BUILD_SPEC §11 carries both figures and the reasoning.
+
+### Contrast — a real AA failure, found and fixed
+
+§10 names the header-over-hero case as "the risk case", and it was right.
+§5.2 item 4 moves the nav links to `--nc-ink-500`, which measures 4.6:1 on
+white but is not the same measurement over a 45%-opacity photograph.
+
+Measured off the actual painted strip. `tests/contrast.spec.ts` hides
+everything the header draws, screenshots the strip, and reads that PNG back
+into a canvas inside the page, so the background sampled is the one the
+browser composited rather than one the test reconstructed:
+
+| | before | after |
+|---|---|---|
+| desktop, worst pixel | 2.74:1 | **10.36:1** |
+| desktop, *lightest* pixel | 4.47:1 | 16.88:1 |
+| tablet, worst pixel | 5.07:1 | 5.07:1 |
+| mobile, worst pixel | 1.31:1 | **4.95:1** |
+
+Note the desktop *best* case was 4.47:1 — under AA against every pixel behind
+the header, not only the dark ones.
+
+Fix: `Header` sets `data-at-top` and carries `group`, so while the header is
+transparent its controls render at `--nc-ink-900`. Once it goes solid at 80px,
+§5.2's `--nc-ink-500` applies exactly as specified. The nav links, cart glyph,
+cart count and language toggle all follow it.
+
+**Do not revert this without re-measuring**, and re-run
+`tests/contrast.spec.ts` if the hero photography changes — these numbers are
+properties of that specific image.
+
+### Other defects found and fixed during the build
+
+- **SearchInput had no focus indicator.** It carried `outline-none`, opting out
+  of the global `:focus-visible` floor in `globals.css` and leaving a 1px
+  border-colour change as the only cue. §10 requires a visible indicator on
+  every control.
+- **The logo rendered at 0×44.** §5.2's left zone is `flex-1`, so with a ~640px
+  nav beside it the logo link was the flex item that gave, and `w-auto`
+  collapsed it rather than overflowing. `shrink-0` on the link.
+- **The nav wrapped to two lines at 1280px.** Top-level items measured 59-81px
+  tall instead of 44px, and the nav sat at `md:block` where six items plus the
+  search field genuinely do not fit. Now `lg:block` with `space-x-8` and
+  `whitespace-nowrap`; the `<details>` disclosure moved to `lg:hidden` so
+  nothing is unreachable between 768px and 1024px.
+- **Cart rows animated on page load.** DESIGN.md §5 rules out any animation not
+  covering a visitor-caused state change. `CartItemList` now tracks which rows
+  are genuinely new, and skips the exit animation entirely under reduced
+  motion rather than stalling 300ms on something invisible.
+
+### Verification
+
+- `node scripts/check-static.mjs` — 6 checks, no server needed.
+- `npx playwright test` — 102 tests across mobile-375, tablet-768 and
+  desktop-1280: acceptance (§12), contrast (§10), cart (§7), scroll budget
+  (§5.4), payload budgets (§11), plus full-page screenshots per route and
+  locale under `artifacts/`.
+- `npx tsc --noEmit` and `npm run build` both clean.
+
+### Still open, and why
+
+- `COPY_AUDIT.md` — the English copy audit, delivered as a proposal and **not
+  applied**. Six strings are inaccurate as they stand, eight keys are dead, and
+  six New Born gallery alt strings are too generic to distinguish the images
+  they describe.
+- The §14 "stop and ask" list is unchanged: real prices, per-size PDP
+  descriptions, promo copy, shipping and tax treatment, the "trusted since"
+  year, size ranges, FAQ answers, and the `holdFrame` index.
+- LCP is not yet measured on real hardware. The rebuild plan §5 asks for a
+  mid-tier Android on throttled 4G, not DevTools.
+- FAQ 8 still needs compliance sign-off, and `bn.json` still needs a native
+  reviewer.

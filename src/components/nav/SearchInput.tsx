@@ -81,7 +81,13 @@ export function SearchInput({
           aria-expanded={open && query.trim().length > 0}
           aria-controls={listId}
           autoComplete="off"
-          className="h-11 w-full min-w-0 rounded-pill border border-hairline bg-surface py-2 pl-9 pr-3 type-small text-fg outline-none transition-colors duration-[--dur-fast] focus-visible:border-brand"
+          /* `outline-none` was here, which opted this input out of the
+             global :focus-visible floor in globals.css and left a 1px border
+             colour change as the only focus cue. §10 requires a visible focus
+             indicator on every control, so the floor is allowed through and
+             the border change is now an additional cue rather than the only
+             one. */
+          className="h-11 w-full min-w-0 rounded-pill border border-hairline bg-surface py-2 pl-9 pr-3 type-small text-fg transition-colors duration-[--dur-fast] focus-visible:border-brand"
         />
       </div>
 

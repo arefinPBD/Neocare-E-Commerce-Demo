@@ -39,7 +39,9 @@ export function CartButton({ label }: { label: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
-        className="h-6 w-6 flex-shrink-0 text-ink-500 transition-colors duration-[--dur-fast] group-hover:text-fg-muted"
+        /* group-data-[at-top] comes from Header: --nc-ink-500 fails WCAG
+           1.4.11 over the hero photograph. See the note in Header.tsx. */
+        className="h-6 w-6 flex-shrink-0 text-ink-500 transition-colors duration-[--dur-fast] group-hover:text-fg-muted group-data-[at-top=true]:text-fg"
       >
         <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6" />
         <circle cx="10" cy="21" r="1" />
@@ -49,7 +51,7 @@ export function CartButton({ label }: { label: string }) {
       {hydrated ? (
         <span
           aria-live="polite"
-          className="ml-2 min-w-3 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] group-hover:text-fg"
+          className="ml-2 min-w-3 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] group-hover:text-fg group-data-[at-top=true]:text-fg"
         >
           {itemCount}
         </span>

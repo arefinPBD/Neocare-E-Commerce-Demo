@@ -34,6 +34,20 @@ export interface NavItem {
  * 80px transparent-to-solid switch, the <noscript> solid fallback, the native
  * <details> mobile disclosure, SearchInput, CartButton and LanguageToggle.
  *
+ * CONTRAST, and why `data-at-top` exists (§10, "sample real rendered pixels").
+ * §5.2 item 4 moves the nav links to --nc-ink-500. That measures 4.6:1 on
+ * white, which is fine on every route whose header sits over the page
+ * background. It is NOT fine over the homepage hero. Measured off the actual
+ * painted strip (tests/contrast.spec.ts), --nc-ink-500 scores 2.74:1 against
+ * the darkest pixel behind the desktop header and 1.31:1 on mobile — and even
+ * against the LIGHTEST pixel it only reaches 4.47:1, still under AA.
+ *
+ * So while the header is transparent, its controls render at --nc-ink-900,
+ * which measures 5.13:1 against that same worst pixel. Once the header goes
+ * solid at 80px, §5.2's --nc-ink-500 applies exactly as specified. `group` +
+ * `data-at-top` carries the state to the children, including the ones that
+ * live in their own components.
+ *
  * The transparent state is applied by JS. With JS disabled the <noscript>
  * block forces the solid state, so the logo and controls stay legible against
  * page content instead of vanishing onto white (§10: usable with JS disabled).
@@ -92,8 +106,9 @@ export function Header({
       </noscript>
 
       <header
+        data-at-top={atTop ? 'true' : 'false'}
         className={
-          'site-header sticky top-0 z-40 transition-[background-color,box-shadow] duration-[--dur-base] ease-[--ease-out] ' +
+          'site-header group sticky top-0 z-40 transition-[background-color,box-shadow] duration-[--dur-base] ease-[--ease-out] ' +
           (atTop ? 'bg-transparent' : 'bg-surface shadow-card')
         }
       >
@@ -125,7 +140,7 @@ export function Header({
                   <li key={item.label} className="group relative">
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]:text-fg"
                     >
                       {item.label}
                     </a>
@@ -148,7 +163,7 @@ export function Header({
                   <li key={item.href}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
+                      className="inline-flex min-h-11 items-center whitespace-nowrap py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg group-data-[at-top=true]:text-fg"
                     >
                       {item.label}
                     </a>
