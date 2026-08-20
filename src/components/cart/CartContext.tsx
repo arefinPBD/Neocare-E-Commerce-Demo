@@ -23,6 +23,15 @@ import type { SizeKey } from '@/lib/sizes';
 interface CartContextValue {
   items: CartItem[];
   itemCount: number;
+  /**
+   * False until localStorage has been read on the client.
+   *
+   * BUILD_SPEC v3.0 §5.2 needs this: the header renders a digit-sized skeleton
+   * in the count's place before hydration so the row does not shift when the
+   * real number arrives. Consumers must not treat `itemCount === 0` as "empty"
+   * while this is false — it only means "not read yet".
+   */
+  hydrated: boolean;
   subtotal: number;
   isOpen: boolean;
   openCart: () => void;
@@ -115,6 +124,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       itemCount: computeItemCount(items),
       subtotal: computeSubtotal(items),
+      hydrated,
       isOpen,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
@@ -122,7 +132,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       setQuantity,
     }),
-    [items, isOpen, addItem, removeItem, setQuantity],
+    [items, isOpen, hydrated, addItem, removeItem, setQuantity],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

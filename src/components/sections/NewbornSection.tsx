@@ -37,7 +37,12 @@ const GALLERY: {
       alt: (t) => t.newborn.imageAlt,
     },
     {
-      src: '/product/diaper-3d.gif',
+      /* The still frame, not diaper-3d.gif. The GIF is 339 KB over the wire
+         and this marquee is the reason it was still being fetched on mobile
+         after the Look Closer stage was gated to >=768px. A marquee is already
+         in motion; a second, independent rotation inside one of its tiles adds
+         no information for 325 KB. Same product, same framing, 38 KB. */
+      src: '/product/hero-frame.webp',
       width: 1200,
       height: 1698,
       alt: (t) => t.newborn.galleryBaseAlt,

@@ -266,14 +266,34 @@ export function ProductSequence({ t }: { t: Dictionary }) {
             >
               {/* Plain <img>, not next/image: it's an animated GIF and Next's
                   optimizer flattens animated GIFs to their first frame unless
-                  told not to touch them at all. The loop is the rotation. */}
-              <img
-                src="/product/diaper-3d.gif"
-                alt={t.product.imageAlt}
-                width={1200}
-                height={1698}
-                className="absolute inset-0 h-full w-full object-contain"
-              />
+                  told not to touch them at all. The loop is the rotation.
+
+                  <picture> gates the GIF to >=768px. Measured, the GIF is
+                  339 KB over the wire and it was being fetched on mobile,
+                  where it accounted for 48% of the entire homepage payload —
+                  on the mid-tier-Android-on-mobile-data profile the whole
+                  spec is built around, and for motion that the rebuild plan
+                  §5 puts on desktop only. Below 768px the browser takes the
+                  14 KB still instead and never requests the GIF: <source>
+                  media matching happens before the fetch, so this is a real
+                  saving rather than a hidden element.
+
+                  This is also the same breakpoint the pin itself is gated on
+                  (globals.css .seq-root[data-pinned]), so the moving asset and
+                  the scrubbed layout appear together or not at all. */}
+              <picture>
+                <source
+                  media="(min-width: 768px)"
+                  srcSet="/product/diaper-3d.gif"
+                />
+                <img
+                  src="/product/hero-frame-720.webp"
+                  alt={t.product.imageAlt}
+                  width={1200}
+                  height={1698}
+                  className="absolute inset-0 h-full w-full object-contain"
+                />
+              </picture>
               {/* Desktop only — there is no arrow on mobile (DESIGN.md §6). */}
               {canAnimate && <FeatureArrow ref={arrowRef} />}
             </div>

@@ -40,7 +40,7 @@ export function ProductCard({
 
   return (
     <Link href={`/${locale}/${hrefBase}/${size.slug}`} className="group block">
-      <div className="relative aspect-square overflow-hidden rounded-tight border border-hairline bg-surface-alt">
+      <div className="relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt">
         {badge && (
           <span className="absolute left-3 top-3 z-10 rounded-pill bg-surface px-3 py-1 type-small font-semibold text-fg-muted shadow-card">
             {badge}
@@ -51,7 +51,7 @@ export function ProductCard({
           alt=""
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-contain p-8 transition-transform duration-[--dur-base] ease-[--ease-out] group-hover:scale-105"
+          className="object-contain p-8"
         />
         {singlePack && (
           <AddToCartButton
@@ -59,7 +59,7 @@ export function ProductCard({
             pack={singlePack}
             disabled={disabledAddToCart}
             aria-label={quickAddLabel}
-            className="!min-h-9 !min-w-9 absolute bottom-3 left-3 z-10 rounded-full !px-0 !py-0 opacity-100 shadow-card transition-[opacity,transform] duration-[--dur-fast] hover:scale-110 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100"
+            className="!min-h-9 !min-w-9 absolute bottom-3 left-3 z-10 rounded-full !px-0 !py-0 opacity-100 shadow-card transition-[opacity,transform] duration-[--dur-fast] active:scale-95 sm:opacity-0 sm:group-hover:opacity-100"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6" />

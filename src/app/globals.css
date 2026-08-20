@@ -359,6 +359,65 @@
 }
 
 /* ---------------------------------------------------------------------------
+ * Commerce-surface motion (DESIGN.md v2.0 §5; BUILD_SPEC v3.0 §3).
+ *
+ * The reference kit expresses these two effects through the `motion` library.
+ * BUILD_SPEC §2 forbids adding it, so they are CSS built from the §5 tokens.
+ * Nothing here is a new value: both durations and the easing come from
+ * tokens.css.
+ *
+ * "Motion on a commerce surface exists only to absorb latency" (§5) — so this
+ * block contains exactly two effects, both tied to a state change the visitor
+ * caused. There is no scroll reveal and no page transition here.
+ *
+ * The global prefers-reduced-motion rule below collapses both to ~0ms, which
+ * is the intended end state: the row simply appears, and the button reads as
+ * busy through its fill (§6.1 disabled-while-busy) rather than through spin.
+ * ------------------------------------------------------------------------- */
+
+/* Button spinner. Tailwind ships the `spin` keyframes, so this is only the
+   ring itself: 16px, one transparent edge so the rotation is legible.
+   The button keeps `flex items-center justify-center gap-2`, so mounting the
+   spinner does not displace the label (§6.1). */
+.btn-spinner {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+/* Cart row enter / exit: fade + 20px slide at --dur-base / --ease-out. */
+@keyframes cart-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes cart-row-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+.cart-row-enter {
+  animation: cart-row-in var(--dur-base) var(--ease-out) both;
+}
+.cart-row-exit {
+  animation: cart-row-out var(--dur-base) var(--ease-out) both;
+}
+
+/* ---------------------------------------------------------------------------
  * Ecommerce hover response (§5 motion tokens; no new hex/timing values).
  *
  * Gated on `(hover: hover) and (pointer: fine)` — not just a bare `:hover` —

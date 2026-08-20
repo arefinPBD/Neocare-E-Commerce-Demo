@@ -185,12 +185,22 @@
   "shop": {
     "title": "NeoCare থেকে কিনুন",
     "intro": "আসল প্যাক সাইজ, দাম নির্ধারিত — কার্টে যোগ করার জন্য প্রস্তুত।",
-    "quickAdd": "দ্রুত যোগ করুন"
+    "quickAdd": "দ্রুত যোগ করুন",
+    "viewAll": "পাঁচটি সাইজই দেখুন"
   },
   "pdp": {
     "addToCart": "কার্টে যোগ করুন",
     "choosePack": "প্যাক সাইজ বেছে নিন",
-    "backToFinder": "কোন সাইজ দরকার বুঝতে পারছেন না? সাইজ ফাইন্ডার ব্যবহার করুন"
+    "backToFinder": "কোন সাইজ দরকার বুঝতে পারছেন না? সাইজ ফাইন্ডার ব্যবহার করুন",
+    "sizeLabel": "সাইজ",
+    "descriptionTitle": "বিবরণ",
+    "description": {
+      "newBorn": "[TODO: client] নিউ বর্ন সাইজের বিবরণ।",
+      "small": "[TODO: client] স্মল সাইজের বিবরণ।",
+      "medium": "[TODO: client] মিডিয়াম সাইজের বিবরণ।",
+      "large": "[TODO: client] লার্জ সাইজের বিবরণ।",
+      "xl": "[TODO: client] এক্সএল সাইজের বিবরণ।"
+    }
   },
   "cart": {
     "title": "আপনার কার্ট",
@@ -204,7 +214,9 @@
     "checkout": "চেকআউট",
     "remove": "সরিয়ে ফেলুন",
     "decreaseQty": "পরিমাণ কমান",
-    "increaseQty": "পরিমাণ বাড়ান"
+    "increaseQty": "পরিমাণ বাড়ান",
+    "total": "সর্বমোট",
+    "shippingLabel": "ডেলিভারি"
   },
   "category": {
     "comingSoon": "শীঘ্রই আসছে",
@@ -249,5 +261,8 @@
     "placeholder": "পণ্য খুঁজুন",
     "ariaLabel": "পণ্য খুঁজুন",
     "noResults": "কোনো পণ্য পাওয়া যায়নি"
+  },
+  "promo": {
+    "text": ""
   }
 }

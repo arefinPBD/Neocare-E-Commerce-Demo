@@ -6,7 +6,12 @@ import { lang } from 'next/root-params';
 import '../globals.css';
 import { CartProvider } from '@/components/cart/CartContext';
 import { CartSidebar } from '@/components/cart/CartSidebar';
+import { Header } from '@/components/nav/Header';
+import { LanguageToggle } from '@/components/nav/LanguageToggle';
+import { PromoBar } from '@/components/nav/PromoBar';
+import { Footer } from '@/components/sections/Footer';
 import { LOCALES, getDictionary, isLocale } from '@/lib/i18n';
+import { buildNav, buildSearchProducts } from '@/lib/navigation';
 
 /* DESIGN.md §2 — one weight per script for the demo: 400 and 600.
  *
@@ -85,7 +90,36 @@ export default async function RootLayout(props: LayoutProps<'/[lang]'>) {
           {t.nav.skipToContent}
         </a>
         <CartProvider>
+          {/* BUILD_SPEC v3.0 §5.1 — the promo bar is a sibling of the header,
+              not a wrapper around it. It scrolls away; the header sticks
+              beneath it. Wrapping both in one sticky container would pin the
+              bar too, which §5.1 explicitly forbids.
+
+              Site chrome lives here rather than per page as of v3.0: before
+              this, only the homepage rendered a Header or Footer, so the PDP,
+              the product grid, the cart page and the placeholder category
+              pages had no navigation at all. §5.1-§5.3 assume chrome on every
+              route. */}
+          <PromoBar t={t} />
+          <Header
+            nav={buildNav(current, t)}
+            menuLabel={t.nav.openMenu}
+            navLabel={t.nav.mainNav}
+            logoAlt={t.nav.logoAlt}
+            locale={current}
+            searchProducts={buildSearchProducts(current, t)}
+            searchPlaceholder={t.search.placeholder}
+            searchAriaLabel={t.search.ariaLabel}
+            searchNoResults={t.search.noResults}
+            cartLabel={t.cart.title}
+            toggle={
+              <LanguageToggle current={current} label={t.nav.switchLanguage} />
+            }
+          />
+
           {props.children}
+
+          <Footer t={t} />
           <CartSidebar t={t} locale={current} />
         </CartProvider>
       </body>

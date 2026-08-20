@@ -17,7 +17,22 @@ export interface NavItem {
 
 /**
  * S0 — sticky. Transparent over the hero, then --nc-paper + --shadow-sm once
- * 80px is scrolled. 64px tall on mobile, 80px on desktop.
+ * 80px is scrolled.
+ *
+ * BUILD_SPEC v3.0 §5.2 — restructured to the reference kit's bar:
+ *   1. 96px (h-24) at EVERY width, replacing h-16 md:h-20. One height, not
+ *      two, and it is what gives the upper half its air. Hero's negative top
+ *      margin follows it to a single -mt-24.
+ *   2. Three zones: flex-1 left (logo, plus nav on desktop), flex-1 right
+ *      (search, cart, language, mobile disclosure).
+ *   4. Nav links are type-small font-semibold text-fg-muted hover:text-fg with
+ *      no pill background. The old text-brand hover:bg-surface-brand treatment
+ *      is gone from the top-level links; dropdown PANELS keep their existing
+ *      rounded-card + shadow-float chrome, which §5.2 leaves alone.
+ *
+ * Everything else here is unchanged and deliberately so: sticky behaviour, the
+ * 80px transparent-to-solid switch, the <noscript> solid fallback, the native
+ * <details> mobile disclosure, SearchInput, CartButton and LanguageToggle.
  *
  * The transparent state is applied by JS. With JS disabled the <noscript>
  * block forces the solid state, so the logo and controls stay legible against
@@ -82,18 +97,20 @@ export function Header({
           (atTop ? 'bg-transparent' : 'bg-surface shadow-card')
         }
       >
-        <div className="mx-auto flex h-16 max-w-(--container-content) items-center justify-between gap-2 px-4 md:h-20 md:px-6">
-          <Link
-            href="#main"
-            className="flex min-h-11 items-center rounded-soft"
-            aria-label={logoAlt}
-          >
-            {/* No `priority`: the hero image is the LCP element, and a second
-                preload only competes with it for the first connection. */}
-            <Image src={logo} alt={logoAlt} className="h-9 w-auto md:h-11" />
-          </Link>
+        <div className="mx-auto flex h-24 max-w-(--container-content) items-center justify-between gap-2 px-4 md:px-6">
+          {/* Left zone: logo, then the nav from lg up. */}
+          <div className="flex flex-1 items-center gap-8">
+            <Link
+              href={`/${locale}`}
+              className="flex min-h-11 items-center rounded-soft"
+              aria-label={logoAlt}
+            >
+              {/* No `priority`: the hero image is the LCP element, and a second
+                  preload only competes with it for the first connection. */}
+              <Image src={logo} alt={logoAlt} className="h-9 w-auto md:h-11" />
+            </Link>
 
-          {/* Desktop nav (S0: centre, desktop only). */}
+          {/* Desktop nav (S0: desktop only). */}
           <nav aria-label={navLabel} className="hidden md:block">
             <ul className="flex items-center gap-1">
               {nav.map((item) =>
@@ -101,7 +118,7 @@ export function Header({
                   <li key={item.label} className="group relative">
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                      className="inline-flex min-h-11 items-center px-3 py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
                     >
                       {item.label}
                     </a>
@@ -124,7 +141,7 @@ export function Header({
                   <li key={item.href}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center rounded-pill px-3 py-2 type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                      className="inline-flex min-h-11 items-center px-3 py-2 type-small font-semibold text-fg-muted transition-colors duration-[--dur-fast] hover:text-fg"
                     >
                       {item.label}
                     </a>
@@ -133,8 +150,10 @@ export function Header({
               )}
             </ul>
           </nav>
+          </div>
 
-          <div className="flex items-center gap-1">
+          {/* Right zone. */}
+          <div className="flex flex-1 items-center justify-end gap-1">
             <SearchInput
               locale={locale}
               products={searchProducts}

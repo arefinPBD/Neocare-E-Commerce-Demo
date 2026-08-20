@@ -23,7 +23,9 @@ export function Hero({ t }: { t: Dictionary }) {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate -mt-16 overflow-hidden bg-surface-brand md:-mt-20"
+      /* BUILD_SPEC v3.0 §5.2 item 1 — the header is 96px at every width now,
+         so the hero's negative top margin is one value instead of two. */
+      className="relative isolate -mt-24 overflow-hidden bg-surface-brand"
     >
       <picture>
         <source

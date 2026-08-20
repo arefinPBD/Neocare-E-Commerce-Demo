@@ -185,12 +185,22 @@
   "shop": {
     "title": "Shop NeoCare",
     "intro": "Real pack sizes, priced and ready to add to your cart.",
-    "quickAdd": "Quick add"
+    "quickAdd": "Quick add",
+    "viewAll": "See all five sizes"
   },
   "pdp": {
     "addToCart": "Add to cart",
     "choosePack": "Choose a pack size",
-    "backToFinder": "Not sure which size? Use the size finder"
+    "backToFinder": "Not sure which size? Use the size finder",
+    "sizeLabel": "Size",
+    "descriptionTitle": "Description",
+    "description": {
+      "newBorn": "[TODO: client] Per-size description for New Born. No performance claim, absorbency figure or duration may be written here without confirmation.",
+      "small": "[TODO: client] Per-size description for Small.",
+      "medium": "[TODO: client] Per-size description for Medium.",
+      "large": "[TODO: client] Per-size description for Large.",
+      "xl": "[TODO: client] Per-size description for XL."
+    }
   },
   "cart": {
     "title": "Your Cart",
@@ -204,7 +214,9 @@
     "checkout": "Checkout",
     "remove": "Remove",
     "decreaseQty": "Decrease quantity",
-    "increaseQty": "Increase quantity"
+    "increaseQty": "Increase quantity",
+    "total": "Total",
+    "shippingLabel": "Shipping"
   },
   "category": {
     "comingSoon": "Coming soon",
@@ -249,5 +261,8 @@
     "placeholder": "Search products",
     "ariaLabel": "Search products",
     "noResults": "No products found"
+  },
+  "promo": {
+    "text": ""
   }
 }
