@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react';
 
 import { useCart } from '@/components/cart/CartContext';
-import type { SizeKey } from '@/lib/sizes';
+import type { ProductKey } from '@/lib/catalogue';
 
 const VARIANTS = {
   primary: 'bg-brand text-fg-inverse hover:bg-brand-hover',
@@ -26,7 +26,7 @@ export function AddToCartButton({
   disabled = false,
   ...props
 }: Omit<ComponentPropsWithoutRef<'button'>, 'type' | 'onClick'> & {
-  sizeKey: SizeKey;
+  sizeKey: ProductKey;
   pack: number;
   variant?: Variant;
   disabled?: boolean;

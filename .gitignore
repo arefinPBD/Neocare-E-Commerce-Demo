@@ -55,3 +55,7 @@ Thumbs.db
 /blob-report/
 /playwright/.cache/
 /scratch/
+
+# graphify knowledge-graph output (generated; contains a local cache and
+# absolute paths from the machine that built it)
+/graphify-out/

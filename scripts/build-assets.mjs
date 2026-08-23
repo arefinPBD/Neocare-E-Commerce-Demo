@@ -13,10 +13,29 @@
  *     lifestyle_parent_baby_e1.jpg               S9 supporting
  *     abstract_texture_e2.jpg                    decorative band
  *
+ *   REAL packshot photography (v3.1) — studio pack renders, transparent PNG
+ *     NeBorn / premium-Small / premium-medium / premium-large / premium-XL
+ *                                              -> product/packs/{size}.webp
+ *     Aspire adult diaper, pant, underpads, wet towel
+ *                                              -> product/adult/*.webp
+ *     NeoCare baby wipes 80 / 120 / 180        -> product/wipes/*.webp
+ *     Lumera makeup-remover, Viva refreshing   -> product/face/*.webp
+ *     Alpha is PRESERVED on these (no flatten): the card sits them on
+ *     --color-surface-alt, and a baked white box would show as a hard square.
+ *
  *   EXCLUDED — build spec §1 non-negotiable 3
  *     INTERNAL-BRIEF__do-not-publish__sap_c1.jpg  marked do-not-publish; AI SAP core
  *     product_angle_b1.jpg                        unbranded AI diaper
  *     S1 Opt 2.png                                social-page comp, not a web asset
+ *
+ *   EXCLUDED — duplicate of a product already emitted (build spec §4.3)
+ *     *' (1)'.png                          byte-identical copies (5 files)
+ *     NeoCare Baby Diaper Sizes S M L XL.png   Small 32 pcs; no 32-pack variant
+ *                                              exists in the catalogue (§4.3)
+ *     Medium_50pcs_01 / Medium_30pcs_02        kept, but as the Medium PDP
+ *                                              gallery only — the card and the
+ *                                              size finder use the studio
+ *                                              packshot so all five sizes match
  */
 import sharp from 'sharp';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -123,6 +142,44 @@ async function main() {
   await emit(sharp(src('Medium_30pcs_02.png')).resize(720, null, { fit: 'inside' }).flatten({ background: '#ffffff' }), 'product/packs/medium-30.webp', {
     webp: { quality: 80 },
   });
+
+  // ---- v3.1 packshots. One per unique product (build spec §4.3). ----
+  // Native size is 300x300 (a few 330x300); they are NOT upscaled — an
+  // upscaled 300px source looks worse than a sharp small one letterboxed by
+  // object-contain, and the card pads it by p-8 anyway. Intrinsic sizes are
+  // declared in catalogue.ts so the box never shifts on load.
+  const PACKSHOTS = [
+    // Diapers Line — the studio family. All five sizes, one consistent look.
+    ['NeBorn-300x300-1.png', 'product/packs/new-born'],
+    ['premium-Small_50pcs-300x300-1.png', 'product/packs/small'],
+    ['premium-medium_50pcs-300x300-1.png', 'product/packs/medium'],
+    ['premium-large_50pcs-300x300-1.png', 'product/packs/large'],
+    ['premium-XL_50pcs-300x300-1.png', 'product/packs/xl'],
+
+    // Adult Diapers.
+    ['AspireAdultDiaper-M-8pcs-1.png', 'product/adult/diaper-m'],
+    ['adult-diaper-home-thumb.png', 'product/adult/diaper-m-alt'],
+    ['aspire_L_8pcs.png', 'product/adult/diaper-l'],
+    ['aspire_pant_medium_8_s.png', 'product/adult/pant-m'],
+    ['aspire_pant_large_8_s.png', 'product/adult/pant-l'],
+    ['aspire-underpads-premium-300x300-1.png', 'product/adult/underpads'],
+
+    // Baby Wipes (+ the adult wet towel, filed here by product form).
+    ['neocare_wipes_80pcs.png', 'product/wipes/baby-80'],
+    ['neocare-baby-wipes-cat.png', 'product/wipes/baby-120'],
+    ['Baby-Wipes-120pcs-300x300-2.png', 'product/wipes/baby-120-alt'],
+    ['neocare-wipes-180s-canister-pack.png', 'product/wipes/baby-180'],
+    ['aspire-adult-wet-wipes-300x300-1.png', 'product/wipes/adult-wet-towel'],
+
+    // Face Wipes.
+    ['lumera-makeup-remover-wipes-300x300-1.png', 'product/face/makeup-remover'],
+    ['viva-refreshing-300x300-1.png', 'product/face/refreshing'],
+    ['viva-refreshing-wipes.png', 'product/face/refreshing-alt'],
+  ];
+
+  for (const [file, out] of PACKSHOTS) {
+    await emit(sharp(src(file)), `${out}.webp`, { webp: { quality: 82, alphaQuality: 100 } });
+  }
 
   // ---- Decorative texture. alt="" everywhere it is used. ----
   await emit(sharp(src('abstract_texture_e2.jpg')).resize(1376, 400, { fit: 'cover' }), 'decor/texture.webp', {

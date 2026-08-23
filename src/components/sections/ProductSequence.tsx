@@ -312,13 +312,32 @@ export function ProductSequence({ t }: { t: Dictionary }) {
             {t.product.featuresTitle}
           </h2>
 
-          <ul className="seq-copy-list flex flex-col gap-4">
+          {/* BUILD_SPEC v3.1 §5.6 — below 768px the five cards are ONE swipeable
+              row, not five stacked full-width cards. Measured at 375px the
+              stack was 1747px, 30% of the whole homepage, to read five
+              captions of the same shape; as a row it is ~315px. Same pattern
+              as §5.5's category rows, so a visitor learns the gesture once.
+
+              Every `md:` class here restores the v3.0 column exactly, so the
+              desktop unpinned off-state (§1 non-negotiable 2 — guards failed,
+              no GSAP) is byte-for-byte what it was. The pinned path overrides
+              this list entirely from globals.css at a higher specificity.
+
+              tabIndex/aria-label: a scrollable region must be keyboard
+              operable and named (§10). `Enter` still owns each card's reveal —
+              a card off-screen to the RIGHT is non-intersecting on the
+              horizontal axis too, so it fades in when swiped to, not before. */}
+          <ul
+            tabIndex={0}
+            aria-label={t.product.featuresTitle}
+            className="seq-copy-list -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-col md:snap-none md:overflow-visible md:px-0 md:pb-0 md:scroll-px-0"
+          >
             {FEATURE_KEYS.map((key, i) => {
               const f = t.features[key];
               return (
                 <li
                   key={key}
-                  className="seq-copy"
+                  className="seq-copy w-[82%] shrink-0 snap-start md:w-auto md:shrink"
                   ref={(el) => {
                     copyRefs.current[i] = el;
                   }}

@@ -7,7 +7,7 @@ import { useCart } from '@/components/cart/CartContext';
 import type { Dictionary, Locale } from '@/lib/i18n';
 import { lineTotal, type CartItem } from '@/lib/cart';
 import { fmtMoney } from '@/lib/numerals';
-import { SIZES } from '@/lib/sizes';
+import { findProduct, productName } from '@/lib/catalogue';
 
 /**
  * BUILD_SPEC v3.0 §7.1 — one row, shared by the drawer and the cart page.
@@ -40,10 +40,10 @@ export function CartItemRow({
   onRemove?: () => void;
 }) {
   const { setQuantity, removeItem } = useCart();
-  const size = SIZES.find((row) => row.key === item.sizeKey);
+  const size = findProduct(item.sizeKey);
   if (!size) return null;
 
-  const name = t.sizes.names[item.sizeKey];
+  const name = productName(t, size);
 
   return (
     <li className={`flex py-6 ${animation}`}>

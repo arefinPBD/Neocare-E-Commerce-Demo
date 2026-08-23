@@ -5,7 +5,7 @@ import { useId, useState } from 'react';
 import { AddToCartButton } from '@/components/product/AddToCartButton';
 import type { Locale } from '@/lib/i18n';
 import { fmt, fmtMoney } from '@/lib/numerals';
-import type { SizeKey } from '@/lib/sizes';
+import type { ProductKey } from '@/lib/catalogue';
 
 /**
  * BUILD_SPEC v3.0 §6.4 — the pack row, plus the Add to cart button it feeds.
@@ -44,7 +44,7 @@ export function PackPicker({
   packUnit,
   addToCartLabel,
 }: {
-  sizeKey: SizeKey;
+  sizeKey: ProductKey;
   packs: number[];
   priceByPack: Record<number, number>;
   locale: Locale;

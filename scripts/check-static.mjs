@@ -83,8 +83,10 @@ const cssFiles = srcFiles.filter((f) => extname(f) === '.css');
 
 /* ---- §4.1: every price is a marked placeholder ------------------------ */
 {
-  const sizes = readFileSync('src/lib/sizes.ts', 'utf8');
-  if (!/TODO: client.*placeholder price/i.test(sizes))
+  // v3.1 — the data source moved from sizes.ts to catalogue.ts when the wipes
+  // and adult products joined the diapers in one catalogue (§4).
+  const source = readFileSync('src/lib/catalogue.ts', 'utf8');
+  if (!/TODO: client.*placeholder price/i.test(source))
     fail('§4.1 prices marked as placeholders', 'no TODO marker at the price data source');
   else pass('§4.1 prices marked as placeholders');
 
@@ -93,11 +95,11 @@ const cssFiles = srcFiles.filter((f) => extname(f) === '.css');
   // JSX prop pass-through does not trip it.
   const offenders = codeFiles.filter(
     (f) =>
-      !f.endsWith('sizes.ts') &&
+      !f.endsWith('catalogue.ts') &&
       /priceByPack\s*:\s*\{\s*\d/.test(readFileSync(f, 'utf8')),
   );
-  if (offenders.length) fail('prices live only in sizes.ts', offenders.join('\n'));
-  else pass('prices live only in sizes.ts');
+  if (offenders.length) fail('prices live only in catalogue.ts', offenders.join('\n'));
+  else pass('prices live only in catalogue.ts');
 }
 
 /* ---- non-negotiable 3: excluded assets never ship --------------------- */

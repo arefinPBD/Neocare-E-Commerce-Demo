@@ -426,3 +426,48 @@ A skeleton whose box does not match the loaded node causes a layout shift, which
 - Numerals: Western digits in both locales (`src/lib/numerals.ts`). Resolved.
 - **Bangla strings run 15–30% longer than English.** Never fix a button, chip, nav item, cart row or search input width to English content. Every width on a commerce surface is either intrinsic or `flex-1`.
 - All-caps and letter-spacing are neutralised on `/bn` by the `globals.css` rule (§2.3), so the reference kit's `uppercase` chips may be written verbatim.
+
+---
+
+## Addendum — v3.1 (23 August 2026)
+
+### Section rhythm is viewport-dependent
+
+`--section-rhythm` remains `clamp(4rem, 10vh, 8rem)` at 768px and above.
+**Below 768px it is a flat `2.75rem` (44px).**
+
+The clamp is keyed to viewport height, so on a 812px phone it resolved to 81px
+— applied as `padding-block`, 162px between every adjacent pair of sections, or
+20% of the viewport spent on nothing. Measured across the homepage at 375px it
+totalled 835px.
+
+The generous rhythm this document asks for is a property of a large viewport,
+where a section boundary needs real air to read as one thing ending and another
+beginning. On a phone that boundary is already unambiguous — a section fills
+the screen — and the same air reads as a gap the reader scrolls through.
+BUILD_SPEC §1 non-negotiable 1 says mobile is the primary design rather than
+desktop scaled down; this is that rule applied to spacing.
+
+Defined in `tokens.css` under `@media (max-width: 767px)`. Figures and the rest
+of the budget work are in BUILD_SPEC §11.2.
+
+### The horizontal card row
+
+A repeating pattern as of v3.1, used in exactly two places: the homepage
+category rows (BUILD_SPEC §5.5) and Look Closer's feature callouts (§5.6). Both
+collapse a vertical stack of same-shaped cards into one swipeable row on small
+viewports and restore the original layout above the breakpoint.
+
+- Card width `46%` for product cards, `82%` for the wider feature cards. Both
+  leave the next card visibly clipped at the viewport edge — that clipping IS
+  the swipe affordance, so the row bleeds full-width via `-mx-4 … px-4` while
+  the first card stays on the page gutter.
+- `snap-x` with `snap-start` on each item, **and `scroll-px-4` to match the
+  gutter**. Without it the browser seats card one against the scrollport edge,
+  which ignores padding: the row silently scrolls itself 16px on load and every
+  card sits 16px left of its own heading. Measured, not theoretical.
+- A scrollable region is a keyboard target: `tabIndex={0}` plus an accessible
+  name (WCAG 2.1 — a scrolling `div` is not focusable by default). **A row with
+  nothing to scroll takes neither**, or it becomes a dead stop in the tab order.
+- Never applies to a full listing, only to a teaser row. Category pages and
+  `/products` stay grids: there the section is the page.

@@ -1,8 +1,7 @@
 import type { NavItem } from '@/components/nav/Header';
 import type { SearchProduct } from '@/components/nav/SearchInput';
 import type { Dictionary, Locale } from '@/lib/i18n';
-import { fmtMoney } from '@/lib/numerals';
-import { priceRange, SIZES } from '@/lib/sizes';
+import { priceDisplay, productName, PRODUCTS } from '@/lib/catalogue';
 
 /**
  * Nav and search data, extracted from the homepage so the layout can build it
@@ -60,7 +59,12 @@ export function buildNav(locale: Locale, t: Dictionary): NavItem[] {
 }
 
 /**
- * The five real diaper sizes, for the header's client-side search filter.
+ * Every product in the catalogue, for the header's client-side search filter.
+ *
+ * BUILD_SPEC v3.1 §5.2 — was the five diaper sizes only, which meant searching
+ * "wipes" returned nothing on a site that sells four kinds of them. It now
+ * covers all of `PRODUCTS`; the filter itself is unchanged and still runs
+ * entirely client-side with no backend.
  *
  * A single price renders as one figure; a product with several pack variants
  * renders as `min - max`, matching DESIGN.md §6.3.
@@ -69,22 +73,12 @@ export function buildSearchProducts(
   locale: Locale,
   t: Dictionary,
 ): SearchProduct[] {
-  /* The en dash here is the existing v2.1 rendering, kept byte-identical.
-   * design-taste-frontend would replace it with a hyphen, but this string
-   * renders in BOTH locales and the client scoped copy changes to English via
-   * an approval diff. It is proposed there instead of changed here. */
-  return SIZES.map((size) => {
-    const [min, max] = priceRange(size);
-    return {
-      slug: size.slug,
-      name: t.sizes.names[size.key],
-      price:
-        min === max
-          ? fmtMoney(min, locale)
-          : `${fmtMoney(min, locale)} – ${fmtMoney(max, locale)}`,
-      image: size.image,
-      imageW: size.imageW,
-      imageH: size.imageH,
-    };
-  });
+  return PRODUCTS.map((product) => ({
+    slug: product.slug,
+    name: productName(t, product),
+    price: priceDisplay(product, locale),
+    image: product.image,
+    imageW: product.imageW,
+    imageH: product.imageH,
+  }));
 }

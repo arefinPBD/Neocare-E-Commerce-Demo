@@ -1,19 +1,41 @@
 import { lang } from 'next/root-params';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 
+import { ProductCards } from '@/components/product/ProductCards';
+import {
+  CATEGORY_ORDER,
+  productsInCategory,
+  type CategorySlug,
+} from '@/lib/catalogue';
 import { getDictionary, isLocale } from '@/lib/i18n';
-import { fmtMoney } from '@/lib/numerals';
-import { findCategory, PLACEHOLDER_CATEGORIES } from '@/lib/placeholderCatalogue';
 
 /**
- * BUILD_SPEC v2.0 §4.2 — placeholder grids for the three "Our Products"
- * categories with no real inventory yet. Every card is marked "Coming soon"
- * and add-to-cart is a disabled, non-functional button by default (§4.2:
- * do not let a visitor "buy" a product that doesn't exist).
+ * BUILD_SPEC v3.1 §6.2a — the category listing. Every product in the category,
+ * including the one the homepage shows as a best seller: this page is the
+ * complete list, so nothing is filtered out of it.
+ *
+ * v3.0 rendered nine invented products behind a "Coming soon" badge with
+ * add-to-cart disabled, illustrated with diaper photography, because no real
+ * inventory data existed. Real packshots and a real product list now exist for
+ * all three categories (§4.3), so the badge, the disabled button and
+ * `placeholderCatalogue.ts` are all gone. Prices remain placeholders under
+ * §4.1's rule — shown plainly, marked in code — exactly as the diapers are.
+ *
+ * `brandNote` stays: §4.4 names these products without a brand word while the
+ * packshot shows real Aspire, Lumera and Viva packaging, and a visitor is owed
+ * that context on the page rather than only in a code comment.
+ *
+ * "Diapers Line" is not routed here. It has its own page at `/products` with
+ * the five-size `ProductGrid`, and `categoryHref` sends it there.
  */
+type RoutedCategory = Exclude<CategorySlug, 'diapers'>;
+
+const ROUTED: RoutedCategory[] = CATEGORY_ORDER.filter(
+  (c): c is RoutedCategory => c !== 'diapers',
+);
+
 export function generateStaticParams() {
-  return PLACEHOLDER_CATEGORIES.map((c) => ({ slug: c.slug }));
+  return ROUTED.map((slug) => ({ slug }));
 }
 
 export default async function CategoryPage(
@@ -23,52 +45,31 @@ export default async function CategoryPage(
   const current = await lang();
   if (!current || !isLocale(current)) return null;
 
-  const category = findCategory(slug);
+  const category = ROUTED.find((c) => c === slug);
   if (!category) notFound();
 
   const t = getDictionary(current);
-  const copy = t.category.items[category.slug];
-  const itemCopy = copy.items as Record<string, string>;
+  const copy = t.category.items[category];
+  const products = productsInCategory(category);
 
   return (
-    <main id="main" className="section-rhythm mx-auto max-w-(--container-content) px-4 md:px-6">
-      <span className="inline-flex items-center rounded-pill bg-surface-alt px-4 py-2 type-small font-semibold text-fg-muted">
-        {t.category.comingSoon}
-      </span>
-      <h1 className="type-h1 measure mt-4 text-fg">{copy.title}</h1>
+    <main
+      id="main"
+      className="section-rhythm mx-auto max-w-(--container-content) px-4 md:px-6"
+    >
+      <h1 className="type-h1 measure text-fg">{copy.title}</h1>
       <p className="type-body-lg measure mt-4 text-fg-muted">{copy.intro}</p>
 
-      <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {category.items.map((item) => (
-          <div key={item.slug}>
-            <div className="relative aspect-square overflow-hidden rounded-tight border border-hairline bg-surface-alt">
-              <span className="absolute left-3 top-3 z-10 rounded-pill bg-surface px-3 py-1 type-small font-semibold text-fg-muted shadow-card">
-                {t.category.comingSoon}
-              </span>
-              <Image
-                src={item.image}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="object-contain p-8"
-              />
-            </div>
-            <div className="mt-3">
-              <p className="type-body font-semibold text-fg">
-                {itemCopy[item.key]}
-              </p>
-              <p className="type-body text-fg-muted">{fmtMoney(item.price, current)}</p>
-            </div>
-            <button
-              type="button"
-              disabled
-              className="mt-3 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center rounded-pill bg-surface-alt px-6 py-3 type-small font-semibold text-fg-muted"
-            >
-              {t.category.comingSoon}
-            </button>
-          </div>
-        ))}
-      </div>
+      <ProductCards
+        products={products}
+        t={t}
+        locale={current}
+        className="mt-10"
+      />
+
+      <p className="type-small measure mt-12 text-fg-muted">
+        {t.category.brandNote}
+      </p>
     </main>
   );
 }

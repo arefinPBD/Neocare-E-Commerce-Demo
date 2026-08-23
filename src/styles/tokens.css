@@ -122,3 +122,25 @@
   --font-active: var(--font-bangla);
   --prose-measure: 60ch;
 }
+
+/* ---------- §2.1 Mobile section rhythm (BUILD_SPEC v3.1 §11.2) ----------
+ *
+ * `--section-rhythm` above is a viewport-HEIGHT clamp, so on a 812px phone it
+ * resolves to 81px — applied as `padding-block`, that is 162px between every
+ * pair of adjacent sections, or 20% of the viewport spent on nothing. Measured
+ * on the homepage at 375px it totalled 835px, 103vh of a 900vh budget.
+ *
+ * Below 768px it becomes a flat 44px. Desktop is untouched: the generous
+ * rhythm DESIGN.md §3 asks for is a property of a large viewport, where a
+ * section boundary needs real air to read as one. On a phone the boundary is
+ * already unambiguous — one section fills the screen — and the same air reads
+ * as a gap the reader has to scroll through.
+ *
+ * §1 non-negotiable 1: mobile is the primary design, not desktop scaled down.
+ * This is that rule applied to spacing.
+ */
+@media (max-width: 767px) {
+  :root {
+    --section-rhythm: 2.75rem;
+  }
+}

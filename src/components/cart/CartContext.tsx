@@ -18,7 +18,7 @@ import {
   subtotal as computeSubtotal,
   type CartItem,
 } from '@/lib/cart';
-import type { SizeKey } from '@/lib/sizes';
+import type { ProductKey } from '@/lib/catalogue';
 
 interface CartContextValue {
   items: CartItem[];
@@ -36,9 +36,9 @@ interface CartContextValue {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (sizeKey: SizeKey, pack: number, quantity?: number) => void;
-  removeItem: (sizeKey: SizeKey, pack: number) => void;
-  setQuantity: (sizeKey: SizeKey, pack: number, quantity: number) => void;
+  addItem: (sizeKey: ProductKey, pack: number, quantity?: number) => void;
+  removeItem: (sizeKey: ProductKey, pack: number) => void;
+  setQuantity: (sizeKey: ProductKey, pack: number, quantity: number) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -82,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, hydrated]);
 
   const addItem = useCallback(
-    (sizeKey: SizeKey, pack: number, quantity = 1) => {
+    (sizeKey: ProductKey, pack: number, quantity = 1) => {
       setItems((prev) => {
         const key = lineKey(sizeKey, pack);
         const existing = prev.find((i) => lineKey(i.sizeKey, i.pack) === key);
@@ -100,13 +100,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const removeItem = useCallback((sizeKey: SizeKey, pack: number) => {
+  const removeItem = useCallback((sizeKey: ProductKey, pack: number) => {
     const key = lineKey(sizeKey, pack);
     setItems((prev) => prev.filter((i) => lineKey(i.sizeKey, i.pack) !== key));
   }, []);
 
   const setQuantity = useCallback(
-    (sizeKey: SizeKey, pack: number, quantity: number) => {
+    (sizeKey: ProductKey, pack: number, quantity: number) => {
       const key = lineKey(sizeKey, pack);
       if (quantity <= 0) {
         setItems((prev) => prev.filter((i) => lineKey(i.sizeKey, i.pack) !== key));

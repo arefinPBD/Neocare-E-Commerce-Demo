@@ -187,7 +187,28 @@
     "title": "Shop NeoCare",
     "intro": "Real pack sizes, priced and ready to add to your cart.",
     "quickAdd": "Quick add",
-    "viewAll": "See all five sizes"
+    "viewAll": "See all five sizes",
+    "bestSellersTitle": "Our Best Sellers",
+    "bestSellersIntro": "One from each of our product lines.",
+    "moreIn": "More in {category}",
+    "seeAllIn": "See all {category}",
+    "seeAll": "See all"
+  },
+  "products": {
+    "names": {
+      "adultDiaperM": "Adult Diaper — M, 8 pcs",
+      "adultDiaperL": "Adult Diaper — L, 8 pcs",
+      "adultPantM": "Adult Pant Diaper — M, 8 pcs",
+      "adultPantL": "Adult Pant Diaper — L, 8 pcs",
+      "underpads": "Premium Underpads — 10 pcs",
+      "babyWipes80": "Baby Wipes — 80 pcs",
+      "babyWipes120": "Baby Wipes — 120 pcs",
+      "babyWipes180": "Baby Wipes — 180 pcs canister",
+      "adultWetTowel": "Adult Wet Towel — 80 pcs",
+      "makeupRemoverWipes": "Makeup Remover Wipes — 25 pcs",
+      "refreshingWipes": "Refreshing Wipes — 25 pcs"
+    },
+    "packAlt": "{product} pack"
   },
   "pdp": {
     "addToCart": "Add to cart",
@@ -200,7 +221,18 @@
       "small": "[TODO: client] Per-size description for Small.",
       "medium": "[TODO: client] Per-size description for Medium.",
       "large": "[TODO: client] Per-size description for Large.",
-      "xl": "[TODO: client] Per-size description for XL."
+      "xl": "[TODO: client] Per-size description for XL.",
+      "adultDiaperM": "[TODO: client] Product description for Adult Diaper — M, 8 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "adultDiaperL": "[TODO: client] Product description for Adult Diaper — L, 8 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "adultPantM": "[TODO: client] Product description for Adult Pant Diaper — M, 8 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "adultPantL": "[TODO: client] Product description for Adult Pant Diaper — L, 8 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "underpads": "[TODO: client] Product description for Premium Underpads — 10 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "babyWipes80": "[TODO: client] Product description for Baby Wipes — 80 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "babyWipes120": "[TODO: client] Product description for Baby Wipes — 120 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "babyWipes180": "[TODO: client] Product description for Baby Wipes — 180 pcs canister. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "adultWetTowel": "[TODO: client] Product description for Adult Wet Towel — 80 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "makeupRemoverWipes": "[TODO: client] Product description for Makeup Remover Wipes — 25 pcs. No performance claim, absorbency figure or duration may be written here without client approval.",
+      "refreshingWipes": "[TODO: client] Product description for Refreshing Wipes — 25 pcs. No performance claim, absorbency figure or duration may be written here without client approval."
     }
   },
   "cart": {
@@ -224,32 +256,18 @@
     "items": {
       "adult-diapers": {
         "title": "Adult Diapers",
-        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
-        "items": {
-          "regular": "Adult Diapers — Regular",
-          "overnight": "Adult Diapers — Overnight",
-          "maxi": "Adult Diapers — Maxi"
-        }
+        "intro": "Belt-type and pull-up pant diapers in two sizes each, plus premium bed underpads."
       },
       "baby-wipes": {
         "title": "Baby Wipes",
-        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
-        "items": {
-          "pack80": "Baby Wipes — Pack of 80",
-          "pack120": "Baby Wipes — Pack of 120",
-          "pack3x80": "Baby Wipes — 3 × 80 Pack"
-        }
+        "intro": "Soft-fabric wet wipes in three pack formats, and an adult wet towel."
       },
       "face-wipes": {
         "title": "Face Wipes",
-        "intro": "Coming soon — this category doesn't have real products yet. These cards use NeoCare diaper photography as a placeholder for the finished layout.",
-        "items": {
-          "pack30": "Face Wipes — Pack of 30",
-          "pack60": "Face Wipes — Pack of 60",
-          "pack90": "Face Wipes — Pack of 90"
-        }
+        "intro": "Makeup remover wipes and refreshing face wipes."
       }
-    }
+    },
+    "brandNote": "[TODO: client] These products are shown in their own retail packaging (Aspire, Lumera, Viva) — sister brands of Incepta Hygiene & Hospicare Ltd. Confirm how they should be named and branded on a NeoCare site."
   },
   "checkout": {
     "title": "Checkout",

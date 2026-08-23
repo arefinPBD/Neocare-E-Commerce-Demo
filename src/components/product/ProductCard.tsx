@@ -2,13 +2,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { AddToCartButton } from '@/components/product/AddToCartButton';
-import type { SizeRow } from '@/lib/sizes';
+import { servesOriginal, type Product } from '@/lib/catalogue';
 
 /**
  * BUILD_SPEC §5.2 — square image, name + price below, whole card links to
  * the PDP. Quick-add only appears for single-pack products (§5.2's
  * `singleVariant` gate, mirroring the reference site's product-card.tsx) —
  * multi-pack products (Medium) must go through the PDP to choose a pack.
+ *
+ * v3.1 — the prop is a `Product`, not a `SizeRow`. The card renders every
+ * category identically: §4.3 put the wipes and adult products in the same
+ * catalogue with the same shape, and a wipes card that looked different from a
+ * diaper card would be a distinction without a difference.
  *
  * §5.2a (v2.1) — quick-add is a circular icon button, bottom-left of the
  * image, `opacity-0 group-hover:opacity-100` on desktop and always visible
@@ -18,7 +23,7 @@ import type { SizeRow } from '@/lib/sizes';
  * `stopPropagation` in AddToCartButton keep a click from also navigating.
  */
 export function ProductCard({
-  size,
+  product,
   name,
   priceDisplay,
   locale,
@@ -27,7 +32,7 @@ export function ProductCard({
   disabledAddToCart = false,
   hrefBase = 'product',
 }: {
-  size: SizeRow;
+  product: Product;
   name: string;
   priceDisplay: string;
   locale: string;
@@ -36,10 +41,10 @@ export function ProductCard({
   disabledAddToCart?: boolean;
   hrefBase?: string;
 }) {
-  const singlePack = size.packs.length === 1 ? size.packs[0] : null;
+  const singlePack = product.packs.length === 1 ? product.packs[0] : null;
 
   return (
-    <Link href={`/${locale}/${hrefBase}/${size.slug}`} className="group block">
+    <Link href={`/${locale}/${hrefBase}/${product.slug}`} className="group block">
       <div className="relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt">
         {badge && (
           <span className="absolute left-3 top-3 z-10 rounded-pill bg-surface px-3 py-1 type-small font-semibold text-fg-muted shadow-card">
@@ -47,15 +52,18 @@ export function ProductCard({
           </span>
         )}
         <Image
-          src={size.image}
+          src={product.image}
           alt=""
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          /* §11.1 — a 300px packshot is already the right size and already
+             tuned WebP; an optimizer variant would only upscale it. */
+          unoptimized={servesOriginal(product)}
           className="object-contain p-8"
         />
         {singlePack && (
           <AddToCartButton
-            sizeKey={size.key}
+            sizeKey={product.key}
             pack={singlePack}
             disabled={disabledAddToCart}
             aria-label={quickAddLabel}

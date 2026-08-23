@@ -273,3 +273,138 @@ properties of that specific image.
   mid-tier Android on throttled 4G, not DevTools.
 - FAQ 8 still needs compliance sign-off, and `bn.json` still needs a native
   reviewer.
+
+# Stage 7 — v3.1 real product catalogue (BUILD_SPEC v3.1, 2026-08-23)
+
+`../Media` was analysed image by image, not by filename. It yields **16 unique
+products** across the four dropdown categories, from 19 usable packshot files —
+the extra 3 are second crops of packs already counted, and become `gallery`
+entries rather than products. Also present and excluded: 5 byte-identical `(1)`
+copies, and 3 non-products (a Facebook page comp, the internal-brief SAP
+render, an unbranded AI diaper).
+v3.0's nine invented placeholder products are deleted.
+
+## Decisions taken with the client before any code was written
+
+- **Brand treatment:** the Adult products are Aspire and the face wipes are
+  Lumera / Viva — sister Incepta brands, not NeoCare. Chosen: **list them with
+  neutral names** ("Adult Pant Diaper — M, 8 pcs"), packshot unretouched,
+  `category.brandNote` disclosing the real brands on the page. Not chosen:
+  naming the brands in copy, or holding the categories back.
+- **Prices and cart:** placeholder price + working add-to-cart, on §4.1's
+  existing convention (figure shown plainly, TODO marker in code). This
+  resolves §14 item 12 as "enabled".
+- **Homepage:** "Our Best Sellers" (four products, one per dropdown category)
+  followed by four compact category rows with the best sellers excluded.
+- **Best-seller picks** are the client's, not derived: Medium 50 pcs, Adult
+  Pant Diaper M 8 pcs, Baby Wipes 120 pcs, Refreshing Wipes. §1 non-negotiable
+  7 still holds — no rank, units-sold or "#1" appears anywhere. If the client
+  withdraws the picks, the heading goes with them.
+- **Size finder:** each of the five sizes shows its own pack photograph. Pack
+  lists are NOT extended — `Media` holds a Small 32-pcs packshot, but adding a
+  32-pack would invent a SKU, so that file is deliberately unused.
+- **Adult extras:** underpads under Adult Diapers; the adult wet towel under
+  Baby Wipes, grouped by product form. Its name says "Adult" so the listing is
+  not misleading.
+
+## Architecture
+
+`lib/catalogue.ts` is now the single catalogue (16 products). `lib/sizes.ts`
+keeps the weight-band logic and re-exports the diaper slice, so every existing
+`@/lib/sizes` import still resolves. `lib/placeholderCatalogue.ts` and
+`sections/ShopCta.tsx` are deleted.
+
+`CartItem.sizeKey` widened from `SizeKey` to `ProductKey`. **The field name is
+deliberately unchanged** — it is persisted in visitors' `localStorage` under
+`neocare-cart-v1`, and renaming it would silently empty every existing cart.
+
+`scripts/check-static.mjs` was updated to read the price rules against
+`catalogue.ts` rather than `sizes.ts`.
+
+## Two real defects found while measuring
+
+**1. The category rows broke the mobile scroll budget.**
+
+Everything else on the homepage costs 885vh at 375px against §11's 900vh gate —
+15vh of headroom. The rows, as a two-up grid, cost 340vh (1224vh total, 36%
+over). Rebuilt as a mobile horizontal scroller that came down to 226vh — still
+1111vh, still 24% over. There is no form of the section that fits.
+
+First resolution was `hidden sm:block` (885vh ✓) — the section met the gate by
+not existing on the primary viewport. **Superseded the same day**: the client
+asked for the rows on mobile, so the budget was won back properly instead. Four
+things were each independently wrong, and BUILD_SPEC §11.2 has the table:
+
+| Fix | Saved |
+|---|---|
+| `--section-rhythm` is a viewport-HEIGHT clamp → 81px `padding-block` per section, 835px (103vh) across the homepage. Flat 44px below 768px; desktop untouched. | ~46vh |
+| Category row headings wrapped to two lines at 343px (87px × 4). Short `shop.seeAll` label below sm + one type step down → 38px. | ~15vh |
+| The lone Face Wipes card fell through to the grid branch's `mx-auto max-w-xs` and capped its whole row at 320px. `SCROLLER_COLUMNS` is now `sm:`-only and may never set a width. | ~32vh |
+| Look Closer stacked five full-width photo cards on mobile — 1747px, 30% of the homepage, for five captions of the same shape. Now one swipeable row (§5.6). | ~171vh |
+
+**847vh en / 867vh bn ✓ with the rows visible on mobile**, 33vh of headroom —
+35vh better than v3.0 managed with three fewer categories on the page.
+
+The `--section-rhythm` finding is the transferable one: a spacing token defined
+in `vh` scales with the axis that has nothing to do with how much air a layout
+needs. It bought the least and cost the most exactly where the primary
+viewport is.
+
+One more defect the measurement caught: with `snap-x`, the browser seats the
+first item against the SCROLLPORT edge, which ignores padding — so each row
+scrolled itself 16px on load and every card sat 16px left of its own heading.
+`scroll-px-4` on the row fixes it. Eyeballing a screenshot is what first
+suggested it; `getBoundingClientRect` is what proved it.
+
+Verified rather than assumed, after the Look Closer change: desktop still
+reports `data-pinned=true` with the copy list computing to `display: block` and
+exactly one callout visible mid-sequence; reduced motion shows all five cards at
+opacity 1 with zero running animations; all scrolling rows are keyboard
+focusable and named, and the one row with nothing to scroll takes no tab stop.
+
+**2. Fourteen `/_next/image` requests on the homepage, every one an upscale.**
+
+The packshots are 300×300 and `build-assets.mjs` already emits tuned WebP at
+5–19 KB. next/image was being asked for w=384/640/750 variants of a 300px
+source. Measured on `adult-wet-towel`: w=640 is 5,382 bytes against the
+original's 6,344. `servesOriginal()` (§11.1) sends any ≤400px packshot straight
+through — **14 optimizer requests → 0**.
+
+> Surfaced as a `waitUntil: 'networkidle'` hang in the desktop Playwright run
+> that looked like a code regression and was not. A request aborted mid-write
+> poisons its `.next/cache/images` entry, and every later request for that key
+> then blocks forever while `curl` serves the same URL in 30ms. **If an image
+> request hangs but curl is fine: delete `.next/cache/images` and restart.**
+> Each timed-out test run poisons another entry, so it looks self-sustaining.
+
+## Results
+
+| | v3.0 | v3.1 | Budget |
+|---|---|---|---|
+| Homepage scroll — mobile en | 882vh | **847vh** ✓ | ≤900vh |
+| Homepage scroll — mobile bn | 887vh | **867vh** ✓ | ≤900vh |
+| Homepage JS gz — mobile | 151.9 KB | **152.2 KB** ✓ | ≤180 KB |
+| Homepage total gz — mobile | 400.9 KB | **507.2 KB** ✓ | ≤1.2 MB |
+| Homepage `/_next/image` reqs | 14 (after this work's content) | **0** | — |
+| Homepage scroll — desktop en | 1334vh | 1580vh | documented overrun |
+
+Eleven extra products on the landing page, all four categories visible on
+mobile, and the page is **35vh shorter than v3.0**.
+
+## Verification
+
+- `npx tsc --noEmit` clean; `npm run build` clean (47 static pages, 32 PDPs).
+- `node scripts/check-static.mjs` — 6/6.
+- `npx playwright test` — **106 passed, 0 failed, 8 skipped** across
+  mobile-375 / tablet-768 / desktop-1280.
+- Every packshot was inspected visually before being catalogued. Filenames lie:
+  `NeoCare Baby Diaper Sizes Small Medium Large XL.png` is a single Small 32-pcs
+  pack, not a size chart.
+
+## Still open
+
+§14 grew items 13–19: brand treatment, best-seller confirmation, the two
+illegible face-wipe pack counts, whether Small 32 pcs is a real SKU,
+higher-resolution packshots (everything non-diaper is 300×300, which is the
+ceiling for the PDP hero at ~740px), PDP descriptions and Bangla names for the
+eleven new products. Items 1–11 are unchanged. Item 12 is resolved.

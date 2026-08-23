@@ -1,91 +1,18 @@
-export type SizeKey = 'newBorn' | 'small' | 'medium' | 'large' | 'xl';
+import { SIZES, type SizeRow } from '@/lib/catalogue';
 
-export interface SizeRow {
-  key: SizeKey;
-  min: number;
-  max: number;
-  packs: number[];
-  /** Real pack photography where it exists; otherwise the product cutout. */
-  image: string;
-  /** Intrinsic size of `image`. Declared so the box never shifts on load. */
-  imageW: number;
-  imageH: number;
-  /** '/product/{slug}' route segment. BUILD_SPEC §4. */
-  slug: string;
-  /**
-   * Pack size (from `packs`) -> price in poisha (1 taka = 100 poisha; integer,
-   * never a float). BUILD_SPEC §4.1 — every value here is a placeholder,
-   * not a client-confirmed figure. Round numbers only, so nothing reads as a
-   * real price by accident.
-   */
-  // TODO: client — placeholder prices, not confirmed. BUILD_SPEC §4.1.
-  priceByPack: Record<number, number>;
-}
-
-const CUTOUT = { image: '/product/hero-frame.webp', imageW: 1400, imageH: 1089 };
-
-/* BUILD_SPEC §5 S10. Ranges taken from the live site — client to confirm.
- * Overlaps are intentional; they exist on the current site too. */
-export const SIZES: SizeRow[] = [
-  {
-    key: 'newBorn',
-    min: 0,
-    max: 4,
-    packs: [20],
-    ...CUTOUT,
-    slug: 'new-born',
-    priceByPack: { 20: 35000 },
-  },
-  {
-    key: 'small',
-    min: 3,
-    max: 6,
-    packs: [50],
-    ...CUTOUT,
-    slug: 'small',
-    priceByPack: { 50: 65000 },
-  },
-  {
-    key: 'medium',
-    min: 4,
-    max: 9,
-    packs: [30, 50],
-    // The only size with real pack photography. The rest show the product
-    // cutout — the diaper is the same across sizes, so this is accurate.
-    image: '/product/packs/medium-50.webp',
-    imageW: 720,
-    imageH: 999,
-    slug: 'medium',
-    priceByPack: { 30: 45000, 50: 70000 },
-  },
-  {
-    key: 'large',
-    min: 7,
-    max: 18,
-    packs: [50],
-    ...CUTOUT,
-    slug: 'large',
-    priceByPack: { 50: 75000 },
-  },
-  {
-    key: 'xl',
-    min: 11,
-    max: 25,
-    packs: [50],
-    ...CUTOUT,
-    slug: 'xl',
-    priceByPack: { 50: 80000 },
-  },
-];
+/**
+ * The size finder's weight logic.
+ *
+ * BUILD_SPEC v3.1 §4 — the DATA moved to `catalogue.ts`, which is now the one
+ * catalogue for every product rather than for diapers alone. This module keeps
+ * the diaper-only weight-band behaviour and re-exports the diaper slice, so
+ * every existing `@/lib/sizes` import continues to resolve unchanged.
+ */
+export { SIZES, priceRange } from '@/lib/catalogue';
+export type { SizeKey, SizeRow } from '@/lib/catalogue';
 
 export function findBySlug(slug: string): SizeRow | undefined {
   return SIZES.find((row) => row.slug === slug);
-}
-
-/** Single value when a product has one pack size; a [min, max] pair otherwise. */
-export function priceRange(row: SizeRow): [number, number] {
-  const prices = row.packs.map((p) => row.priceByPack[p] ?? 0);
-  return [Math.min(...prices), Math.max(...prices)];
 }
 
 export const WEIGHT_MIN = 3;

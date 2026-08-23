@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useId, useState } from 'react';
 
 import { AddToCartButton } from '@/components/product/AddToCartButton';
+import { servesOriginal } from '@/lib/catalogue';
 import type { Dictionary, Locale } from '@/lib/i18n';
 import { fmt, fmtWeight } from '@/lib/numerals';
 import {
@@ -131,6 +132,7 @@ export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
                 height={primary.imageH}
                 sizes="96px"
                 loading="lazy"
+                unoptimized={servesOriginal(primary)}
                 className="h-24 w-24 object-contain"
               />
             </div>
