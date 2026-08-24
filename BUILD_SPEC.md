@@ -177,31 +177,51 @@ category, directly below the best sellers, on `bg-surface-alt`.
 
 ---
 
-### 5.6 Look Closer on mobile
+### 5.6 Look Closer on mobile — numbered anatomy, not a carousel
 
-`src/components/sections/ProductSequence.tsx`. Below **768px** the five feature
-callouts are ONE horizontally swipeable row, not five stacked full-width photo
-cards. Above 768px nothing changes: the pinned GSAP sequence and its unpinned
-off-state are both unaffected.
+`src/components/sections/ProductSequence.tsx`. Below **768px** the section is a
+labelled product photograph above a numbered vertical list. Above 768px nothing
+changes: the pinned GSAP sequence and its unpinned off-state are untouched.
 
-Measured at 375px, the stack was 1747px — 30% of the entire homepage — to read
-five captions of an identical shape. As a row it is ~315px. That single change
-is what buys the mobile budget back for §5.5's category rows.
+**Desktop works because an arrow points from the active callout to that part of
+the diaper.** Strip the pin and the arrow and that link disappears — which is
+what mobile had. The numbers restore it: marker `n` on the photograph and row
+`n` in the list are the same feature, so a reader can see which part is being
+described without an arrow, a pin, or a gesture.
 
 Rules:
 
-- Every `md:` class on the list and the items restores the stacked column
-  **exactly**. §1 non-negotiable 2's off-state (guards failed, no GSAP, ≥768px)
-  depends on it. Do not "simplify" those classes away.
-- The pinned path is untouched. `globals.css` overrides `.seq-copy-list` and
-  `.seq-copy` at a higher specificity under `[data-pinned='true']`, so the
-  utilities here cannot leak into it. Verified: `data-pinned=true`, copy list
-  computes to `display: block`, exactly one callout visible mid-sequence.
-- `Enter`/`Reveal` still owns each card's entrance. A card off-screen to the
-  RIGHT is non-intersecting on the horizontal axis, so it fades in when swiped
-  to — not before, and not stuck invisible.
-- Reduced motion shows all five cards at opacity 1 with zero running
-  animations. Verified, not assumed.
+- **Two aspect ratios, because `<picture>` serves two differently-shaped
+  images.** The GIF is 1200×1698 portrait; the mobile still is 720×560
+  landscape. `aspect-[720/560] md:aspect-[1200/1698]`, and the `<img>` declares
+  **720×560** — the still's own intrinsic size, not the GIF's.
+- **`FEATURE_MARKERS` is not `FEATURE_ANCHORS`.** Markers are measured against
+  the still frame; anchors are guesses against the rotating GIF. Two different
+  images, so a value correct for one is wrong for the other. **Do not merge
+  them.** Markers are derived from the centre of each feature's own
+  `FEATURE_CROPS` window in `scripts/build-assets.mjs`, mapped through the same
+  `.trim({threshold:12})`, so a marker lands where its close-up was taken.
+- **Markers are not interactive and are `aria-hidden`.** A tap target must do
+  something, and the only sensible something — reveal that feature's text — is
+  already unconditionally visible below. Announcing five bare numerals ahead of
+  the list would be noise (§10). Verified: all five clear 44px with no overlap,
+  worst separation 67px at the 361px render size.
+- **No card chrome below md.** Five bordered, shadowed boxes stacked read as
+  five separate objects when they are one list. A hairline divider says the
+  same for no pixels, and it bought Bangla 25vh (§11.2).
+- **The five close-up photographs are hidden below md.** Each is a crop of the
+  diaper shown whole a few hundred pixels above, so on a phone the section
+  repeated one photograph five times. `sizes` declares `1px` below md so
+  `next/image` never fetches them there. (The pinned desktop path already hid
+  them — `globals.css` `.seq-root[data-pinned='true'] .seq-card-media`.)
+- Every `md:` class restores the stacked column exactly. §1 non-negotiable 2's
+  off-state (guards failed, no GSAP, ≥768px) depends on it.
+
+**A horizontal card row was tried here and withdrawn.** It clipped the peek
+card mid-word, which reads as broken rather than as an affordance; and a
+swipe-only carousel is the wrong pattern for main content — see §6.2a.
+
+---
 
 ## 6. Products
 
@@ -235,7 +255,11 @@ a design choice.
 - `grid` (default) — mobile stays two-up. One card per row cost 204vh for a
   single section at 375px, which is why it is not the default. Used
   where the section is the page: the category pages and the best-seller grid.
-- `scroller` — one swipeable row on mobile, grid from 640px up. Used by §5.5.
+- `scroller` — one swipeable row on mobile, grid from 640px up. **Browse rows
+  only (§5.5).** Never for main content: a swipe-only carousel hides content
+  behind a gesture, and content the visitor did not ask for is the only kind
+  that may cost nothing to miss. §5.6 tried it on the five product features and
+  withdrew it.
   It is a real overflow region, so it takes `tabIndex={0}` and an accessible
   name: WCAG 2.1 requires a scrollable region to be keyboard-operable, and a
   scrolling `div` is not focusable by default (§10).
@@ -510,7 +534,16 @@ each independently wrong:
 | **The lone Face Wipes card rendered at 320px.** A one-card row fell through to the grid branch's `mx-auto max-w-xs`, which is right on a category PAGE and wrong inside a scroller row, where it capped the whole row's width and produced a 320px-tall image. `SCROLLER_COLUMNS` is now `sm:`-prefixed only and may never set a width. | ~32vh |
 | **Look Closer stacked five full-width photo cards** (§5.6). | ~171vh |
 
-Result at 375px: **847vh en / 867vh bn** ✓, with 33vh of headroom.
+Then §5.6 replaced that row with the numbered anatomy list, which costs ~12vh
+more than the row did and is worth it (the row clipped text and hid main
+content behind a gesture). Two things paid for it: the stage's 230px of dead
+space went when its aspect ratio was corrected, and the mobile card chrome came
+off. Bangla is the binding locale — it ran 893vh before the chrome came off.
+
+Result at 375px: **859vh en / 879vh bn** ✓, with 21vh of headroom.
+
+> **Re-measure Bangla, not English, when touching this page.** Bangla runs
+> ~20vh longer, so English passing says nothing.
 
 > **`--section-rhythm` is the one to watch.** It is defined in `vh`, so it
 > scales with viewport HEIGHT — the axis that has nothing to do with how much
@@ -587,9 +620,10 @@ Result at 375px: **847vh en / 867vh bn** ✓, with 33vh of headroom.
 13. **The four "Our Best Sellers" picks** (§5.3a) — client-selected 23 August 2026 as Medium 50 pcs, Adult Pant Diaper M 8 pcs, Baby Wipes 120 pcs, Refreshing Wipes. Confirm they still hold before launch, and confirm the heading itself: it is an editorial claim, and §1 non-negotiable 7 means the build will not derive one.
 14. **Pack counts on the two face-wipe packshots.** Illegible at the supplied 300px. 25 is carried as a placeholder under §4.1's convention — shown plainly, marked in code. Confirm both figures.
 15. **Whether a Small 32-pcs pack is a real SKU** (§4.3). `Media` holds a packshot of one; the catalogue has no 32-pack variant and will not invent one. If it is real, it needs a price and a pack entry.
-16. **Higher-resolution packshots.** Every non-diaper product ships at 300×300. That is adequate for a card (§11.1) but is the ceiling for the PDP hero, which renders it at roughly 740px on desktop.
-17. **Per-product PDP descriptions for the eleven non-diaper products** (§9) — `[TODO: client]` in both locales.
-18. **Bangla names for the eleven non-diaper products.** Written, not client-approved — same standing as the rest of `bn.json`.
+16. **Marker placement for features 1 (SAP) and 3 (Ear)** (§5.6). Each marker sits where its own close-up crop was taken, but neither feature is literally visible there: the absorbent polymer is inside the core, and the crop framed the back waistband rather than the side ear. The numeral is a reference to the list row, not a claim that the feature is visible at that pixel — but confirm the placement, or supply a cutaway that shows the core honestly.
+17. **Higher-resolution packshots.** Every non-diaper product ships at 300×300. That is adequate for a card (§11.1) but is the ceiling for the PDP hero, which renders it at roughly 740px on desktop.
+18. **Per-product PDP descriptions for the eleven non-diaper products** (§9) — `[TODO: client]` in both locales.
+19. **Bangla names for the eleven non-diaper products.** Written, not client-approved — same standing as the rest of `bn.json`.
 
 ---
 

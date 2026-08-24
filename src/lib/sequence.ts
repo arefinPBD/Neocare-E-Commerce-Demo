@@ -34,6 +34,38 @@ export const FEATURE_OUT_AT_VH = 90;
  * silhouette shifts slightly frame to frame, so these are an average position,
  * not a locked-frame measurement the way a scrubbed turntable would give.
  */
+/**
+ * BUILD_SPEC §5.6 — marker positions for the MOBILE anatomy image, as
+ * percentages of `/product/hero-frame-720.webp`.
+ *
+ * SEPARATE FROM `FEATURE_ANCHORS` BELOW, AND THEY MUST STAY SEPARATE. These
+ * are measured against the still frame; those are guesses against the rotating
+ * GIF. They are two different images, so a value that is right for one is
+ * wrong for the other. Do not "deduplicate" them.
+ *
+ * Derived, not guessed: each pair is the centre of that feature's crop window
+ * in `scripts/build-assets.mjs` FEATURE_CROPS — which was measured against
+ * `Diaper 34 Mockup-02.jpg` at its native 2388x2120 — mapped through the same
+ * `.trim({threshold:12})` the pipeline applies, into the trimmed 1898x1476
+ * frame. So a marker lands exactly where its own close-up crop was taken.
+ *
+ * Verified at the mobile render size (361x281): every pair is at least 67px
+ * apart centre-to-centre, so five 44px tap targets fit without overlapping.
+ *
+ * TODO: client — markers 1 (sap) and 3 (ear) sit where their crops were taken,
+ * but neither feature is literally visible there: the absorbent polymer is
+ * inside the core, and the crop framed the back waistband rather than the side
+ * ear. The number is a reference to the list row, not a claim that the feature
+ * is visible at that pixel (§5.6). Confirm placement, or supply a cutaway.
+ */
+export const FEATURE_MARKERS = {
+  sap: { x: 27.0, y: 43.6 },
+  cuff: { x: 66.0, y: 73.4 },
+  ear: { x: 37.6, y: 17.8 },
+  velcro: { x: 89.7, y: 31.4 },
+  backsheet: { x: 26.0, y: 67.3 },
+} as const;
+
 export const FEATURE_ANCHORS = {
   sap: { x: 50, y: 62 },
   cuff: { x: 83, y: 62 },

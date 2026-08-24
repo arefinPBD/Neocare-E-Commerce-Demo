@@ -9,6 +9,7 @@ import type { Dictionary } from '@/lib/i18n';
 import {
   FEATURE_ANCHORS,
   FEATURE_IN_VH,
+  FEATURE_MARKERS,
   FEATURE_OUT_AT_VH,
   SEQUENCE,
 } from '@/lib/sequence';
@@ -262,7 +263,14 @@ export function ProductSequence({ t }: { t: Dictionary }) {
           <Enter animated={canAnimate} className="w-full">
             <div
               ref={stageRef}
-              className="seq-stage-inner relative mx-auto aspect-[1200/1698] w-full max-w-sm"
+              /* §5.6 — TWO aspect ratios, because <picture> serves two
+                 differently-shaped images. The GIF is 1200x1698 (portrait);
+                 the mobile still is 720x560 (landscape). One portrait box for
+                 both meant `object-contain` letterboxed the still inside it:
+                 at 361px wide the box was 511px tall and the diaper only
+                 filled 281px of it, so 230px of the section was empty. That
+                 was the "huge empty screen" below the heading. */
+              className="seq-stage-inner relative mx-auto aspect-[720/560] w-full max-w-sm md:aspect-[1200/1698]"
             >
               {/* Plain <img>, not next/image: it's an animated GIF and Next's
                   optimizer flattens animated GIFs to their first frame unless
@@ -289,11 +297,39 @@ export function ProductSequence({ t }: { t: Dictionary }) {
                 <img
                   src="/product/hero-frame-720.webp"
                   alt={t.product.imageAlt}
-                  width={1200}
-                  height={1698}
+                  /* The still's OWN intrinsic size. It was declaring the
+                     GIF's, which is a different image and a different shape. */
+                  width={720}
+                  height={560}
                   className="absolute inset-0 h-full w-full object-contain"
                 />
               </picture>
+              {/* §5.6 — the mobile counterpart to the desktop arrow.
+                  Desktop animates one arrow to the active feature; mobile
+                  cannot (no pin, no scrub), so all five parts are labelled at
+                  once and the number ties each to its row below.
+
+                  Deliberately NOT interactive. A tap target here would have to
+                  do something, and the only sensible something — reveal that
+                  feature's text — is already unconditionally visible below.
+                  `aria-hidden` for the same reason: the list carries the real
+                  content in reading order, and announcing five bare numerals
+                  ahead of it would be noise (§10). */}
+              <div className="absolute inset-0 md:hidden" aria-hidden="true">
+                {FEATURE_KEYS.map((key, i) => {
+                  const m = FEATURE_MARKERS[key];
+                  return (
+                    <span
+                      key={key}
+                      style={{ left: `${m.x}%`, top: `${m.y}%` }}
+                      className="absolute grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand type-small font-semibold text-fg-inverse shadow-card ring-2 ring-[--color-surface]"
+                    >
+                      {i + 1}
+                    </span>
+                  );
+                })}
+              </div>
+
               {/* Desktop only — there is no arrow on mobile (DESIGN.md §6). */}
               {canAnimate && <FeatureArrow ref={arrowRef} />}
             </div>
@@ -312,54 +348,75 @@ export function ProductSequence({ t }: { t: Dictionary }) {
             {t.product.featuresTitle}
           </h2>
 
-          {/* BUILD_SPEC v3.1 §5.6 — below 768px the five cards are ONE swipeable
-              row, not five stacked full-width cards. Measured at 375px the
-              stack was 1747px, 30% of the whole homepage, to read five
-              captions of the same shape; as a row it is ~315px. Same pattern
-              as §5.5's category rows, so a visitor learns the gesture once.
+          {/* §5.6 — below 768px this is a numbered vertical list keyed to the
+              markers on the image above, NOT a horizontal card row.
 
-              Every `md:` class here restores the v3.0 column exactly, so the
+              The row was tried and withdrawn. Two reasons, both measured: the
+              peek card clipped mid-word ("Hyd… / Leg…"), which reads as broken
+              rather than as an affordance; and a swipe-only carousel is the
+              wrong pattern for MAIN content — it is fine for §5.5's browse
+              rows, where missing a card costs nothing, and wrong here, where
+              these five paragraphs are the product's entire argument.
+
+              Every `md:` class restores the stacked column exactly, so the
               desktop unpinned off-state (§1 non-negotiable 2 — guards failed,
               no GSAP) is byte-for-byte what it was. The pinned path overrides
-              this list entirely from globals.css at a higher specificity.
-
-              tabIndex/aria-label: a scrollable region must be keyboard
-              operable and named (§10). `Enter` still owns each card's reveal —
-              a card off-screen to the RIGHT is non-intersecting on the
-              horizontal axis too, so it fades in when swiped to, not before. */}
-          <ul
-            tabIndex={0}
-            aria-label={t.product.featuresTitle}
-            className="seq-copy-list -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-col md:snap-none md:overflow-visible md:px-0 md:pb-0 md:scroll-px-0"
-          >
+              this list entirely from globals.css at a higher specificity. */}
+          <ul className="seq-copy-list flex flex-col divide-y divide-hairline md:gap-4 md:divide-y-0">
             {FEATURE_KEYS.map((key, i) => {
               const f = t.features[key];
               return (
                 <li
                   key={key}
-                  className="seq-copy w-[82%] shrink-0 snap-start md:w-auto md:shrink"
+                  className="seq-copy"
                   ref={(el) => {
                     copyRefs.current[i] = el;
                   }}
                 >
                   <Enter animated={canAnimate} delayMs={i * 40}>
-                    <article className="seq-card hover-card overflow-hidden rounded-card border border-hairline bg-surface shadow-card">
-                      <div className="seq-card-media hover-zoom">
+                    {/* No card chrome below md. Five bordered, shadowed boxes stacked
+                        vertically read as five separate objects when they are
+                        one list; a hairline divider says the same thing for
+                        no pixels. It also bought the Bangla page 25vh, which
+                        was sitting 7vh under the §11 gate (§11.2). */}
+                    <article className="seq-card hover-card overflow-hidden md:rounded-card md:border md:border-hairline md:bg-surface md:shadow-card">
+                      {/* §5.6 — the close-up is hidden below 768px. It is a
+                          crop of the very diaper shown whole a few hundred
+                          pixels above, so on a phone it repeated the same
+                          photograph five times for 1747px of scroll. The
+                          numbered marker on the anatomy image does that job
+                          in 28px. `sizes` declares 1px below md so next/image
+                          does not fetch five images a phone never shows. */}
+                      <div className="seq-card-media hover-zoom hidden md:block">
                         <Image
                           src={`/product/features/${key}.webp`}
                           alt={f.imageAlt}
                           width={720}
                           height={560}
-                          sizes="(min-width: 768px) 560px, 92vw"
+                          sizes="(min-width: 768px) 560px, 1px"
                           loading="lazy"
                           className="aspect-[2/1] w-full object-cover"
                         />
                       </div>
-                      <div className="seq-card-body p-5">
-                        <h3 className="type-h2 text-fg">{f.title}</h3>
-                        <p className="type-body measure mt-3 text-fg-muted">
-                          {f.body}
-                        </p>
+                      <div className="seq-card-body flex gap-3 py-4 md:block md:p-5">
+                        {/* The marker's twin. Same numeral, same treatment, so
+                            the mapping from part-of-product to explanation is
+                            readable without a legend. Desktop has the arrow
+                            instead and hides it. */}
+                        <span
+                          aria-hidden="true"
+                          className="grid size-7 shrink-0 place-items-center rounded-full bg-brand type-small font-semibold text-fg-inverse md:hidden"
+                        >
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <h3 className="type-h3 text-fg md:type-h2">
+                            {f.title}
+                          </h3>
+                          <p className="type-body measure mt-1 text-fg-muted md:mt-3">
+                            {f.body}
+                          </p>
+                        </div>
                       </div>
                     </article>
                   </Enter>

@@ -123,7 +123,27 @@ below 640px, four independently-wrong things were fixed:
 | `--section-rhythm` is a viewport-HEIGHT clamp → 81px of `padding-block` per section, 162px between every adjacent pair, 835px (103vh) across the homepage. Flat 44px below 768px; desktop untouched. | ~46vh |
 | Category row headings wrapped to two lines at 343px (87px × 4). Short `shop.seeAll` label below sm plus one type step down → 38px. | ~15vh |
 | The lone Face Wipes card fell through to the grid branch's `mx-auto max-w-xs` and capped its whole row at 320px. `SCROLLER_COLUMNS` is now `sm:`-only and may never set a width. | ~32vh |
-| Look Closer stacked five full-width photo cards — 1747px, 30% of the homepage, for five captions of the same shape. Now one swipeable row below 768px. | ~171vh |
+| Look Closer stacked five full-width photo cards — 1747px, 30% of the homepage, for five captions of the same shape. | ~171vh |
+
+Look Closer was then rebuilt again (§5.6). The swipeable row it first became
+clipped the peek card mid-word and hid main content behind a gesture — fine for
+a browse row, wrong for the product's entire sales argument. It is now a
+numbered anatomy image over a numbered list. Three further defects surfaced
+doing it:
+
+- **The stage box had the wrong aspect ratio for the image the phone gets.**
+  `aspect-[1200/1698]` is the desktop GIF's shape; `<picture>` serves mobile a
+  720x560 still. `object-contain` letterboxed it — 511px box, 281px image,
+  **230px of dead space**. The `<img>` was also declaring the GIF's intrinsic
+  size. This was the "huge empty screen" reported from a real phone.
+- **`FEATURE_ANCHORS` were guesses and are wrong.** Checked against the crop
+  windows in `build-assets.mjs`: `ear` was off by 45 percentage points in x.
+  They drive the desktop arrow, so they were left alone; mobile markers use a
+  separate `FEATURE_MARKERS` derived from the crop centres. **Never merge the
+  two — they are measured against two different images.**
+- **Bangla is the binding locale on this page**, ~20vh longer than English. The
+  rebuild passed English at 868vh while Bangla sat at 893vh against a 900vh
+  gate. Dropping the mobile card chrome bought 25vh back.
 
 **The transferable one:** a spacing token defined in `vh` scales with the axis
 that has nothing to do with how much air a layout needs. It bought the least
@@ -167,8 +187,8 @@ and cost the most exactly where the primary viewport is.
 
 | | mobile-375 | tablet-768 | desktop-1280 | Budget |
 |---|---|---|---|---|
-| Homepage scroll (en) | **847vh** ✓ | 1440vh | 1583vh | ≤900vh (mobile gate) |
-| Homepage scroll (bn) | **867vh** ✓ | 1461vh | 1621vh | ≤900vh (mobile gate) |
+| Homepage scroll (en) | **859vh** ✓ | 1440vh | 1583vh | ≤900vh (mobile gate) |
+| Homepage scroll (bn) | **879vh** ✓ | 1461vh | 1621vh | ≤900vh (mobile gate) |
 | Homepage JS (gz) | **152.2 KB** ✓ | 200.2 KB | 200.2 KB | ≤180 KB (mobile gate) |
 | Homepage total (gz) | **507.2 KB** ✓ | 866 KB | 832 KB | ≤1.2 MB |
 | Largest image | **29.9 KB** ✓ | 339 KB (gif) | 339 KB (gif) | ≤180 KB |

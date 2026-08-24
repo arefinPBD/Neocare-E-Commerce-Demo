@@ -469,5 +469,23 @@ viewports and restore the original layout above the breakpoint.
 - A scrollable region is a keyboard target: `tabIndex={0}` plus an accessible
   name (WCAG 2.1 — a scrolling `div` is not focusable by default). **A row with
   nothing to scroll takes neither**, or it becomes a dead stop in the tab order.
-- Never applies to a full listing, only to a teaser row. Category pages and
-  `/products` stay grids: there the section is the page.
+- **Browse content only.** A swipe-only row is acceptable where missing a card
+  costs nothing — a teaser row of products the visitor has not asked for. It is
+  not acceptable for main content: BUILD_SPEC §5.6 tried it on the five product
+  features, where those paragraphs are the entire sales argument, and withdrew
+  it. Full listings stay grids; there the section is the page.
+
+### Numbered anatomy
+
+Where desktop uses motion to link an explanation to a part of a product — an
+arrow, a pin, a scrub — mobile cannot, and the link is what makes the section
+work. Number the parts on one photograph and number the rows that explain them.
+The reader does the association; no gesture, no hidden text, no animation.
+
+- Markers are labels, not controls: not focusable, `aria-hidden`, with the list
+  carrying the real content in reading order.
+- Measure the marker positions against the image the phone actually receives.
+  A `<picture>` that swaps art direction by breakpoint swaps the coordinate
+  space with it.
+- Drop card chrome when rows are a list rather than separate objects. A hairline
+  divider carries the same grouping for no height.
