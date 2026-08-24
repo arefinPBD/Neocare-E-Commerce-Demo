@@ -1,10 +1,8 @@
     72.3 KB  hero/hero-desktop.webp
-    62.6 KB  newborn/newborn-lifestyle.webp
     48.0 KB  hero/hero-desktop.avif
     41.9 KB  hero/hero-mobile.webp
     37.9 KB  product/hero-frame.webp
     29.9 KB  hero/hero-mobile.avif
-    29.4 KB  product/hero-frame.avif
     20.7 KB  product/prints/print-02.webp
     20.5 KB  product/packs/medium-50.webp
     18.8 KB  product/adult/pant-l.webp
@@ -20,13 +18,11 @@
     13.3 KB  product/packs/new-born.webp
     12.9 KB  newborn/cutout-flatlay.webp
     12.6 KB  product/adult/diaper-l.webp
-    12.6 KB  newborn/cutout-flatlay.avif
     12.0 KB  product/prints/print-01.webp
     12.0 KB  product/adult/diaper-m-alt.webp
     10.9 KB  product/features/ear.webp
     10.5 KB  product/wipes/baby-120-alt.webp
      9.9 KB  product/wipes/baby-180.webp
-     9.3 KB  decor/texture.webp
      8.9 KB  product/adult/underpads.webp
      8.6 KB  product/features/backsheet.webp
      8.5 KB  product/wipes/baby-120.webp

@@ -1,5 +1,5 @@
 # NeoCare — Design System
-**v2.0** · 19 August 2026 · supersedes v1.0 (17 August 2026, kept at `DESIGN.md.v1.bak`)
+**Design system** · companion to `BUILD_SPEC.md`
 
 Colours sampled directly from `Medium_50pcs_01.png` and `Diaper 34 Mockup-02.jpg`. Not invented.
 

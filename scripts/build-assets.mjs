@@ -10,8 +10,10 @@
  *
  *   GENERATED, no product claim (atmosphere only)
  *     hero_desktop_a1.jpg / hero_mobile_a2.jpg   S1
- *     lifestyle_parent_baby_e1.jpg               S9 supporting
- *     abstract_texture_e2.jpg                    decorative band
+ *
+ *   The pipeline emits ONLY what the site renders. If you add an output here,
+ *   something must reference it; an unreferenced file in public/ ships weight
+ *   for nothing and is deleted on sight.
  *
  *   REAL packshot photography (v3.1) — studio pack renders, transparent PNG
  *     NeBorn / premium-Small / premium-medium / premium-large / premium-XL
@@ -88,7 +90,6 @@ async function main() {
   const trimmed = sharp(src(MOCKUP)).trim({ threshold: 12 });
   await emit(trimmed.resize(1400, null, { fit: 'inside' }).flatten({ background: '#ffffff' }), 'product/hero-frame.webp', {
     webp: { quality: 82 },
-    avif: { quality: 60 },
   });
   // Mobile-sized variant so the turntable's static fallback does not ship a
   // 1400px image to a 375px screen (the fallback is a plain <img>, so it needs
@@ -106,15 +107,9 @@ async function main() {
     );
   }
 
-  // ---- S9 supporting lifestyle. No product claim: baby is not in a NeoCare diaper. ----
-  await emit(sharp(src('lifestyle_parent_baby_e1.jpg')).resize(1120, 750, { fit: 'cover' }), 'newborn/newborn-lifestyle.webp', {
-    webp: { quality: 74 },
-  });
-
   // ---- S9 umbilical cutout. ----
   await emit(sharp(src('navel_cutout_d1.jpg')).resize(1120, 836, { fit: 'cover' }), 'newborn/cutout-flatlay.webp', {
     webp: { quality: 80 },
-    avif: { quality: 60 },
   });
 
   // ---- S9 print designs gallery. ----
@@ -180,11 +175,6 @@ async function main() {
   for (const [file, out] of PACKSHOTS) {
     await emit(sharp(src(file)), `${out}.webp`, { webp: { quality: 82, alphaQuality: 100 } });
   }
-
-  // ---- Decorative texture. alt="" everywhere it is used. ----
-  await emit(sharp(src('abstract_texture_e2.jpg')).resize(1376, 400, { fit: 'cover' }), 'decor/texture.webp', {
-    webp: { quality: 68 },
-  });
 
   const rows = written
     .map((r) => [r, statSync(path.join(OUT, r)).size])
