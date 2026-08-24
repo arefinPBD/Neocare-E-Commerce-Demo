@@ -7,7 +7,7 @@ import { useId, useState } from 'react';
 import { AddToCartButton } from '@/components/product/AddToCartButton';
 import { servesOriginal } from '@/lib/catalogue';
 import type { Dictionary, Locale } from '@/lib/i18n';
-import { fmt, fmtWeight } from '@/lib/numerals';
+import { fmt, fmtMoney, fmtWeight } from '@/lib/numerals';
 import {
   recommendFor,
   WEIGHT_MAX,
@@ -41,14 +41,36 @@ import {
  * §6.6 describes the recommended card as keeping "its AddToCartButton and its
  * View details link". Neither existed — v2.1 shipped the card as a static
  * panel — so both are added here to match the spec's described end state.
- * Add-to-cart is gated to single-pack sizes exactly as ProductCard gates
- * quick-add (DESIGN.md §6.3): a multi-pack size routes through the PDP so the
- * visitor picks a pack rather than having one chosen for them.
+ *
+ * PACK CHOICE. Add-to-cart used to be gated to single-pack sizes, mirroring
+ * ProductCard's quick-add gate (DESIGN.md §6.3): a multi-pack size had to go
+ * to the PDP so the visitor picked a pack rather than having one chosen for
+ * them. The gate's REASON is sound, but the gate itself made this card
+ * inconsistent with itself — slide to 6 kg and Medium (30 / 50 pcs) is the
+ * only recommendation on the slider's whole range that offers no way to buy,
+ * which reads as a broken card rather than as a deliberate routing decision.
+ *
+ * So the card asks the question instead of dodging it: a multi-pack size
+ * renders a compact pack chooser in the footer and then the same Add to cart
+ * every other size gets. Nothing is chosen on the visitor's behalf — the
+ * choice simply happens here rather than one navigation later. ProductCard's
+ * quick-add gate is untouched; a 300px grid tile has no room to ask, and this
+ * card does.
+ *
+ * The choice is stored per size key, not as a single value, so dragging the
+ * slider from Medium to Large and back cannot carry a 50-pack selection onto
+ * a size that has no such pack.
  */
 export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
   const [weight, setWeight] = useState(6);
+  /** Chosen pack per size key. See PACK CHOICE above for why it is keyed. */
+  const [packChoice, setPackChoice] = useState<Record<string, number>>({});
   const sliderId = useId();
+  const packGroupId = useId();
   const { primary, alternates } = recommendFor(weight);
+
+  const multiPack = primary.packs.length > 1;
+  const selectedPack = packChoice[primary.key] ?? primary.packs[0]!;
 
   const name = (row: SizeRow) => t.sizes.names[row.key];
   const range = (row: SizeRow) =>
@@ -142,26 +164,85 @@ export function SizeSelector({ t, locale }: { t: Dictionary; locale: Locale }) {
               </p>
               <p className="type-h2 font-semibold text-fg">{name(primary)}</p>
               <p className="type-body text-fg-muted">{range(primary)}</p>
-              <p className="type-small mt-1 text-fg-muted">
-                {t.sizes.packLabel}:{' '}
-                {primary.packs.map((p) => fmt(p, locale)).join(' · ')}{' '}
-                {t.sizes.packUnit}
-              </p>
+              {/* Suppressed when the footer's chooser is already showing the
+                  same packs as pickable chips, with prices. Two lists of the
+                  same numbers a few pixels apart is noise. */}
+              {!multiPack && (
+                <p className="type-small mt-1 text-fg-muted">
+                  {t.sizes.packLabel}:{' '}
+                  {primary.packs.map((p) => fmt(p, locale)).join(' · ')}{' '}
+                  {t.sizes.packUnit}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 border-t border-hairline px-6 py-4">
-            {primary.packs.length === 1 && (
-              <AddToCartButton sizeKey={primary.key} pack={primary.packs[0]!}>
+          <div className="border-t border-hairline px-6 py-4">
+            {/* Native radios behind `peer`-styled labels, the same pattern as
+                PackPicker on the PDP: arrow-key traversal, roving focus and
+                group semantics come from the platform for free. `name` is
+                scoped to the size key so switching sizes starts a fresh group
+                rather than inheriting the previous one's checked state. */}
+            {multiPack && (
+              <fieldset aria-label={t.pdp.choosePack} className="mb-4">
+                <legend className="type-small font-semibold text-fg">
+                  {t.pdp.choosePack}
+                </legend>
+
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {primary.packs.map((pack) => {
+                    const id = `${packGroupId}-${primary.key}-${pack}`;
+                    return (
+                      <div key={pack}>
+                        <input
+                          id={id}
+                          type="radio"
+                          name={`${packGroupId}-${primary.key}`}
+                          value={pack}
+                          checked={selectedPack === pack}
+                          onChange={() =>
+                            setPackChoice((prev) => ({
+                              ...prev,
+                              [primary.key]: pack,
+                            }))
+                          }
+                          className="peer sr-only"
+                        />
+                        <label
+                          htmlFor={id}
+                          className={
+                            'flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-hairline bg-surface px-4 py-2 ' +
+                            'type-small font-semibold uppercase text-fg ' +
+                            'transition-colors duration-[--dur-fast] hover:bg-surface-brand ' +
+                            'peer-checked:border-transparent peer-checked:bg-brand peer-checked:text-fg-inverse peer-checked:hover:bg-brand-hover ' +
+                            'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2'
+                          }
+                        >
+                          <span>
+                            {fmt(pack, locale)} {t.sizes.packUnit}
+                          </span>
+                          <span className="font-normal">
+                            {fmtMoney(primary.priceByPack[pack]!, locale)}
+                          </span>
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
+
+            <div className="flex flex-wrap items-center gap-4">
+              <AddToCartButton sizeKey={primary.key} pack={selectedPack}>
                 {t.pdp.addToCart}
               </AddToCartButton>
-            )}
-            <Link
+              <Link
               href={`/${locale}/product/${primary.slug}`}
               className="inline-flex min-h-11 items-center type-small font-semibold text-brand transition-colors duration-[--dur-fast] hover:text-brand-hover hover:underline"
             >
-              {t.sizes.viewDetails}
-            </Link>
+                {t.sizes.viewDetails}
+              </Link>
+            </div>
           </div>
         </article>
 
