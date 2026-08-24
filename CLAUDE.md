@@ -164,7 +164,30 @@ and cost the most exactly where the primary viewport is.
   item against the scrollport edge, which ignores padding — each row scrolled
   itself 16px on load and every card sat left of its own heading.
 
-## One observer per group, never one per row
+## The Look Closer rows have NO scroll reveal — deliberately
+
+Three attempts to make one reliable, each of which passed every automated
+scroll trace and each of which still left rows blank on a real phone:
+
+1. Per-row `Reveal` — five observers, five states, five ways to get stuck.
+2. A visibility-checked failsafe replacing the blind 3s timer.
+3. One observer for the list with a CSS `nth-child` stagger.
+
+The rows carry the product's five selling points. A mechanism that can hide
+main content, and that cannot be verified on the device where it breaks, is
+not worth an entrance animation. DESIGN.md §5 already says motion that does not
+cover a visitor-caused state change should be deleted — this is that rule
+applied after the fact rather than in advance.
+
+**Do not reintroduce a reveal here.** Verified: all five rows are opacity 1 at
+every scroll position from load to footer, and no inline opacity or transform
+survives anywhere in the section.
+
+The general lesson still stands and applies wherever a reveal IS used: one
+observer per group with a CSS stagger, never one per sibling row. Independent
+state per element means independent failure per element.
+
+## Superseded: one observer per group, never one per row
 
 The five Look Closer rows previously each owned a `Reveal`: five observers,
 five bits of state, five ways to get stuck. That is how it failed on a real
