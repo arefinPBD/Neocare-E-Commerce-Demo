@@ -47,7 +47,7 @@ export function CartItemRow({
 
   return (
     <li className={`flex py-6 ${animation}`}>
-      <div className="size-24 shrink-0 overflow-hidden rounded-tight border border-hairline bg-surface-alt">
+      <div className="hover-zoom size-24 shrink-0 overflow-hidden rounded-tight border border-hairline bg-surface-alt">
         {size.image ? (
           <Image
             src={size.image}

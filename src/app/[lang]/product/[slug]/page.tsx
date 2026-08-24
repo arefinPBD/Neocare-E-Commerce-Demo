@@ -145,7 +145,7 @@ export default async function ProductPage(
         {/* --- Gallery ------------------------------------------------- */}
         <div className="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
-            <div className="relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:col-span-2 lg:row-span-2">
+            <div className="hover-zoom relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:col-span-2 lg:row-span-2">
               <Image
                 src={product.image}
                 alt={packAlt(t, product)}
@@ -164,7 +164,7 @@ export default async function ProductPage(
                 key={img.key}
                 /* hidden below lg — and `sizes` is declared so next/image
                    does not request it on a phone. Verified at 375px. */
-                className="relative hidden aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:block"
+                className="hover-zoom relative hidden aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt lg:block"
               >
                 <Image
                   src={img.src}

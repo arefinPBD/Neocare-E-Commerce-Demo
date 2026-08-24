@@ -104,7 +104,10 @@ export function SearchInput({
                 <Link
                   href={`/${locale}/product/${p.slug}`}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-soft p-2 transition-colors duration-[--dur-fast] hover:bg-surface-brand"
+                  /* hover-zoom on the ROW, not on the thumbnail: the row is
+                     what the pointer is aiming at, and the thumbnail keeps
+                     its own overflow-hidden to crop the zoom. */
+                  className="hover-zoom flex items-center gap-3 rounded-soft p-2 transition-colors duration-[--dur-fast] hover:bg-surface-brand"
                 >
                   <span className="h-10 w-10 shrink-0 overflow-hidden rounded-soft bg-surface-alt">
                     <Image

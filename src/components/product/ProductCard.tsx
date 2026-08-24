@@ -21,6 +21,17 @@ import { servesOriginal, type Product } from '@/lib/catalogue';
  * position, hover behaviour). It sits inside the image container, nested in
  * the `<Link>` like the reference's own markup; `preventDefault`/
  * `stopPropagation` in AddToCartButton keep a click from also navigating.
+ *
+ * HOVER — `hover-zoom` (globals.css) is the site's existing hover response,
+ * already worn by the New Born gallery, the sequence cards and the size
+ * selector: the image inside scales to 1.06 over --dur-slow while the frame
+ * stays put, gated on `(hover: hover) and (pointer: fine)` so a tap never
+ * leaves a card stuck zoomed. The product card — the one surface where it
+ * matters most — was the only card that had never been given it.
+ *
+ * It goes on the <Link>, not on the image container, so hovering the NAME or
+ * the price zooms the packshot too: the whole card is one target, and a card
+ * that only responds over its top half reads as broken.
  */
 export function ProductCard({
   product,
@@ -44,7 +55,10 @@ export function ProductCard({
   const singlePack = product.packs.length === 1 ? product.packs[0] : null;
 
   return (
-    <Link href={`/${locale}/${hrefBase}/${product.slug}`} className="group block">
+    <Link
+      href={`/${locale}/${hrefBase}/${product.slug}`}
+      className="hover-zoom group block"
+    >
       <div className="relative aspect-square overflow-hidden rounded-soft border border-hairline bg-surface-alt">
         {badge && (
           <span className="absolute left-3 top-3 z-10 rounded-pill bg-surface px-3 py-1 type-small font-semibold text-fg-muted shadow-card">
