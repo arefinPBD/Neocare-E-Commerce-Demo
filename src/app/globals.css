@@ -135,6 +135,11 @@
   html {
     /* Never disable zoom; never set a fixed root px size. */
     -webkit-text-size-adjust: 100%;
+    /* The header is sticky and 96px tall (h-24, §5.2), so an in-page anchor
+       like /en#faq landed with the section's heading sitting UNDER the bar.
+       scroll-padding-top offsets every fragment jump by the header's height
+       plus a little air, once, for all anchors — no per-section scroll-mt. */
+    scroll-padding-top: 7rem;
     /* Safety net, not a fix for anything specific: no section should ever be
        wider than the viewport, but if one is (an unconstrained flex/grid
        child, a miscalculated marquee track — see .marquee-track below for a

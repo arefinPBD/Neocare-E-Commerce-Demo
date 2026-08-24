@@ -23,8 +23,22 @@ export interface NavItem {
  *   1. 96px (h-24) at EVERY width, replacing h-16 md:h-20. One height, not
  *      two, and it is what gives the upper half its air. Hero's negative top
  *      margin follows it to a single -mt-24.
- *   2. Three zones: flex-1 left (logo, plus nav on desktop), flex-1 right
- *      (search, cart, language, mobile disclosure).
+ *   2. Two zones: left (logo, plus nav on desktop) and right (search, cart,
+ *      language, mobile disclosure), spread by the row's justify-between.
+ *
+ *      NEITHER zone is flex-1 any more, and that is a bug fix, not a tidy-up.
+ *      With `flex-1` on both, each zone got an equal half of the bar: the
+ *      left half was ~100px narrower than logo + nav needed, so the nav's
+ *      <ul> (a flex row of nowrap items) overflowed its zone and ran UNDER
+ *      the right zone's box. The right zone is later in the DOM, so it won
+ *      the hit test and swallowed clicks on the last nav items — "Sizes" and
+ *      "FAQ" were unclickable at every desktop width. Content-sized zones
+ *      cannot overlap, and `shrink-0` on the right keeps it that way.
+ *
+ *   3. The desktop nav switches at xl, not lg. Measured: logo 107 + gap 32 +
+ *      nav 637 + right zone 316 = 1092px, which does not fit the 976px
+ *      content box at lg but clears the 1152px one at xl. Below xl the
+ *      <details> disclosure carries the same items, so nothing is lost.
  *   4. Nav links are type-small font-semibold text-fg-muted hover:text-fg with
  *      no pill background. The old text-brand hover:bg-surface-brand treatment
  *      is gone from the top-level links; dropdown PANELS keep their existing
@@ -120,7 +134,7 @@ export function Header({
       >
         <div className="mx-auto flex h-24 max-w-(--container-content) items-center justify-between gap-2 px-4 md:px-6">
           {/* Left zone: logo, then the nav from lg up. */}
-          <div className="flex flex-1 items-center gap-8">
+          <div className="flex min-w-0 items-center gap-8">
             {/* shrink-0 is load-bearing. The left zone is flex-1, so once the
                 nav beside it is ~640px wide the logo is the flex item that
                 gives, and `w-auto` on the <img> collapses it to zero width
@@ -129,6 +143,37 @@ export function Header({
               href={`/${locale}`}
               className="flex min-h-11 shrink-0 items-center rounded-soft"
               aria-label={logoAlt}
+              onClick={(event) => {
+                // The logo is a "start over" control: a full document load of
+                // the home page, scrolled to the top, not a client-side nav
+                // that leaves the scroll position (and any open drawer/menu
+                // state) where it was. Modifier clicks and non-primary buttons
+                // are left to the browser so open-in-new-tab still works, and
+                // the href stays real so no-JS and SEO are unaffected.
+                if (
+                  event.defaultPrevented ||
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                // scrollRestoration would otherwise drop us back at the old
+                // offset after the reload.
+                if ('scrollRestoration' in window.history) {
+                  window.history.scrollRestoration = 'manual';
+                }
+                window.scrollTo(0, 0);
+                const home = `/${locale}`;
+                if (window.location.pathname === home) {
+                  window.location.reload();
+                } else {
+                  window.location.assign(home);
+                }
+              }}
             >
               {/* No `priority`: the hero image is the LCP element, and a second
                   preload only competes with it for the first connection. */}
@@ -139,7 +184,7 @@ export function Header({
               field do not fit on one line, and a two-line nav bar is broken.
               Below lg the <details> disclosure in the right zone serves the
               same items, so nothing becomes unreachable. */}
-          <nav aria-label={navLabel} className="hidden lg:block">
+          <nav aria-label={navLabel} className="hidden xl:block">
             <ul className="flex items-center space-x-8">
               {nav.map((item) =>
                 item.children ? (
@@ -181,7 +226,7 @@ export function Header({
           </div>
 
           {/* Right zone. */}
-          <div className="flex flex-1 items-center justify-end gap-1">
+          <div className="flex shrink-0 items-center justify-end gap-1">
             <SearchInput
               locale={locale}
               products={searchProducts}
@@ -193,7 +238,7 @@ export function Header({
             <CartButton label={cartLabel} />
             {toggle}
 
-            <details className="relative lg:hidden [&[open]>summary>svg]:rotate-90">
+            <details className="relative xl:hidden [&[open]>summary>svg]:rotate-90">
               <summary
                 aria-label={menuLabel}
                 className="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-pill text-brand transition-colors duration-[--dur-fast] hover:bg-surface-brand [&::-webkit-details-marker]:hidden"
