@@ -330,7 +330,13 @@ export function ProductSequence({ t }: { t: Dictionary }) {
                 })}
               </div>
 
-              {/* Desktop only — there is no arrow on mobile (DESIGN.md §6). */}
+              {/* Desktop only — there is no arrow on mobile (DESIGN.md §6).
+                  Gated twice on purpose: `canAnimate` is false below 768px, and
+                  FeatureArrow is `hidden md:block` besides. The JS gate depends on
+                  client state that a stale hot reload or a device reporting an odd
+                  innerWidth can desynchronise — an arrow was seen on a phone
+                  alongside §5.6's markers, which cannot happen from a cold load.
+                  The CSS gate cannot desynchronise. */}
               {canAnimate && <FeatureArrow ref={arrowRef} />}
             </div>
           </Enter>

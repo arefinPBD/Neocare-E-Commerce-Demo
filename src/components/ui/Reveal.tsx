@@ -65,16 +65,34 @@ export function Reveal({
     );
     io.observe(el);
 
-    // Safety net. If the observer never fires — a browser that throttles it,
-    // a container that never composites — the content must not stay invisible.
-    // Content being visible without its animation is always the better failure.
-    const failSafe = window.setTimeout(() => {
+    /* Safety net. If the observer never fires — a browser that throttles it,
+     * a container that never composites — the content must not stay invisible.
+     * Content visible without its animation is always the better failure.
+     *
+     * It CHECKS VISIBILITY rather than counting down from mount, and that is
+     * the whole point. As a blind 3s timer it was not a safety net at all: it
+     * was the normal path. Measured on the homepage, every Look Closer card
+     * faded in at ~3s after load, roughly 3000px before the section could be
+     * seen, so a visitor scrolling down at human speed arrived to find
+     * everything already shown and nothing ever animated. The section sits at
+     * the bottom of an 859vh page; nobody reaches it inside three seconds.
+     *
+     * Polling is cheap (one getBoundingClientRect per second per armed
+     * element, and armed elements are the minority), it cannot fire early
+     * because it asks the same question the observer does, and it still
+     * rescues a dead observer within a second of the element being on screen.
+     */
+    const failSafe = window.setInterval(() => {
+      const r = el.getBoundingClientRect();
+      const onScreen = r.top < window.innerHeight && r.bottom > 0;
+      if (!onScreen) return;
       setShown(true);
+      window.clearInterval(failSafe);
       io.disconnect();
-    }, 3000);
+    }, 1000);
 
     return () => {
-      window.clearTimeout(failSafe);
+      window.clearInterval(failSafe);
       io.disconnect();
     };
   }, []);

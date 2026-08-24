@@ -84,7 +84,7 @@ export function FeatureArrow({ ref }: { ref?: Ref<ArrowHandle> }) {
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
-      className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+      className="pointer-events-none absolute inset-0 hidden h-full w-full overflow-visible md:block"
     >
       <path
         ref={pathRef}

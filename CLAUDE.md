@@ -164,6 +164,24 @@ and cost the most exactly where the primary viewport is.
   item against the scrollport edge, which ignores padding — each row scrolled
   itself 16px on load and every card sat left of its own heading.
 
+## Reveal's failsafe checks visibility, never a timer
+
+`Reveal` hides an element until an IntersectionObserver says it is on screen,
+with a failsafe in case the observer never fires. That failsafe used to be a
+blind `setTimeout(..., 3000)` from mount — which made it **the normal path, not
+a safety net**. Measured: every Look Closer card faded in ~3s after page load,
+roughly 3000px before the section could be seen. A visitor scrolling at human
+speed arrived to find everything already shown and nothing ever animated. The
+section sits at the bottom of an 859vh page; nobody reaches it in three seconds.
+
+It is now an interval that asks the same question the observer does — is the
+element actually on screen — and only then reveals. It cannot fire early, and
+it still rescues a dead observer within a second of the element appearing.
+
+**Never reintroduce a time-based reveal.** Anything below the first ~2000px of
+a long page will trip it, and the symptom (content already visible, no
+animation) looks like the animation was never written rather than like a bug.
+
 ## Other fixed defects worth not reintroducing
 
 - **Cart rows must not animate on page load.** DESIGN.md §5 rules out any
@@ -180,6 +198,10 @@ and cost the most exactly where the primary viewport is.
   nothing is unreachable between 768px and 1024px.
 - **A row with nothing to scroll takes no `tabIndex`** — a focusable element
   that does nothing is a dead stop in the tab order.
+- **The Look Closer arrow is gated twice**, `canAnimate &&` in JSX and
+  `hidden md:block` on the SVG. The JS gate depends on client state a stale hot
+  reload can desynchronise — an arrow was reported on a phone alongside §5.6's
+  markers, which a cold load cannot produce. CSS cannot desynchronise.
 
 ---
 

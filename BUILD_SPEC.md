@@ -216,6 +216,13 @@ Rules:
   them — `globals.css` `.seq-root[data-pinned='true'] .seq-card-media`.)
 - Every `md:` class restores the stacked column exactly. §1 non-negotiable 2's
   off-state (guards failed, no GSAP, ≥768px) depends on it.
+- **The arrow is gated twice** — `canAnimate &&` in JSX and `hidden md:block`
+  on the SVG. `canAnimate` is client state, and a stale hot reload can leave it
+  true on a phone: an arrow was reported alongside these markers, which a cold
+  load cannot produce. Keep both gates.
+- **Each row reveals as it enters the viewport**, via `Reveal`. Its failsafe
+  must stay visibility-checked; a time-based one reveals this whole section
+  ~3000px before it can be seen (CLAUDE.md).
 
 **A horizontal card row was tried here and withdrawn.** It clipped the peek
 card mid-word, which reads as broken rather than as an affordance; and a
