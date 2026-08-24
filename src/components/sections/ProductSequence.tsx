@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { FeatureArrow, type ArrowHandle } from '@/components/product/FeatureArrow';
 import { Reveal } from '@/components/ui/Reveal';
@@ -63,6 +63,75 @@ function Enter({
 }
 
 /**
+ * §5.6 — ONE observer for the whole feature list, not one per row.
+ *
+ * Five rows previously each owned a `Reveal`: five observers, five bits of
+ * state, five ways to get stuck. That is exactly how it failed on a real
+ * phone — row 2 visible with rows 1 and 3-5 blank, which no amount of staring
+ * at row 2 explains. Independent state per row means independent failure per
+ * row, and these rows are main content: a stuck one hides a product feature.
+ *
+ * One observer arms or shows all five together, so they cannot disagree. The
+ * stagger that makes them arrive in sequence is CSS (`nth-child`
+ * transition-delay in globals.css), which has no state at all.
+ *
+ * Off-state, per §1 non-negotiable 2: this returns `null` and sets NO
+ * attribute unless it has decided to animate. No JS, no IntersectionObserver,
+ * reduced motion, or a list already on screen at mount — every one of those
+ * leaves the attribute off, and the CSS that hides rows is keyed to the
+ * attribute. Content cannot be hidden by this hook failing to run.
+ *
+ * The interval is the safety net for an observer that never fires, and it
+ * asks the same question the observer does rather than counting down from
+ * mount — see `Reveal` for what a blind timer did here.
+ */
+function useListReveal() {
+  const ref = useRef<HTMLUListElement>(null);
+  const [state, setState] = useState<'armed' | 'shown' | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Mobile only, matching the globals.css block exactly. Desktop opacity is
+    // owned by the GSAP timeline or by nothing at all.
+    if (!window.matchMedia('(max-width: 767px)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (typeof IntersectionObserver === 'undefined') return;
+    // Already reachable: hiding it now would flash content that was painted.
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+
+    setState('armed');
+
+    let interval = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) show();
+      },
+      { threshold: 0.05 },
+    );
+
+    function show() {
+      setState('shown');
+      io.disconnect();
+      window.clearInterval(interval);
+    }
+
+    io.observe(el);
+    interval = window.setInterval(() => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) show();
+    }, 500);
+
+    return () => {
+      io.disconnect();
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  return [ref, state] as const;
+}
+
+/**
  * S3–S8. ONE ScrollTrigger, ONE pin, ONE timeline with labels (§5).
  *
  * Below 768px — and under every §6 guard — this renders exactly the Stage 2
@@ -73,6 +142,7 @@ function Enter({
  */
 export function ProductSequence({ t }: { t: Dictionary }) {
   const canAnimate = useCanAnimate();
+  const [listRef, listReveal] = useListReveal();
 
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -368,7 +438,11 @@ export function ProductSequence({ t }: { t: Dictionary }) {
               desktop unpinned off-state (§1 non-negotiable 2 — guards failed,
               no GSAP) is byte-for-byte what it was. The pinned path overrides
               this list entirely from globals.css at a higher specificity. */}
-          <ul className="seq-copy-list flex flex-col divide-y divide-hairline md:gap-4 md:divide-y-0">
+          <ul
+            ref={listRef}
+            data-reveal={listReveal ?? undefined}
+            className="seq-copy-list flex flex-col divide-y divide-hairline md:gap-4 md:divide-y-0"
+          >
             {FEATURE_KEYS.map((key, i) => {
               const f = t.features[key];
               return (
@@ -379,7 +453,10 @@ export function ProductSequence({ t }: { t: Dictionary }) {
                     copyRefs.current[i] = el;
                   }}
                 >
-                  <Enter animated={canAnimate} delayMs={i * 40}>
+                  {/* No per-row Reveal: the list owns it (useListReveal).
+                      A plain div keeps the DOM depth `Enter` produced, so the
+                      pinned desktop selectors are unaffected. */}
+                  <div>
                     {/* No card chrome below md. Five bordered, shadowed boxes stacked
                         vertically read as five separate objects when they are
                         one list; a hairline divider says the same thing for
@@ -425,7 +502,7 @@ export function ProductSequence({ t }: { t: Dictionary }) {
                         </div>
                       </div>
                     </article>
-                  </Enter>
+                  </div>
                 </li>
               );
             })}

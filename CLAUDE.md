@@ -164,6 +164,29 @@ and cost the most exactly where the primary viewport is.
   item against the scrollport edge, which ignores padding — each row scrolled
   itself 16px on load and every card sat left of its own heading.
 
+## One observer per group, never one per row
+
+The five Look Closer rows previously each owned a `Reveal`: five observers,
+five bits of state, five ways to get stuck. That is how it failed on a real
+phone — row 2 visible with rows 1 and 3-5 blank, a state no automated scroll
+reproduced and no amount of looking at row 2 explains. Independent state per
+row means independent failure per row, and these rows are main content, so a
+stuck one silently hides a product feature.
+
+`useListReveal` in `ProductSequence.tsx` now arms or shows all five together
+from one observer, and the stagger that makes them arrive in sequence is CSS
+(`nth-child` transition-delay, globals.css). CSS has no state to desynchronise.
+
+**Rule: a reveal that spans several sibling elements gets ONE observer and a
+CSS stagger.** Per-element observers are for elements that are genuinely
+independent, not for rows of one list.
+
+Off-state, per §1 non-negotiable 2: every hiding rule is keyed to a
+`data-reveal` attribute that only JS sets. No JS, no IntersectionObserver,
+reduced motion, or a list already on screen at mount — the attribute is never
+set and the rows are simply visible. Verified: under reduced motion
+`data-reveal` is `null`, all five opacities are 1, zero running animations.
+
 ## Reveal's failsafe checks visibility, never a timer
 
 `Reveal` hides an element until an IntersectionObserver says it is on screen,

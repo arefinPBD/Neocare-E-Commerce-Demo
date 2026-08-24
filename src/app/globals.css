@@ -498,3 +498,42 @@
 .size-slider::-moz-range-thumb:active {
   transform: scale(1.15);
 }
+
+/* ---------------------------------------------------------------------------
+ * BUILD_SPEC §5.6 — the five Look Closer rows reveal as ONE group.
+ *
+ * The stagger lives here, not in JS, because CSS cannot get stuck: there is no
+ * per-row state to disagree with its neighbours. `useListReveal` sets a single
+ * attribute on the list and every row follows it.
+ *
+ * OFF-STATE (§1 non-negotiable 2): every rule below is keyed to
+ * `[data-reveal]`. Without JS, without an IntersectionObserver, under reduced
+ * motion, or when the list is already on screen at mount, the attribute is
+ * never set and the rows are simply visible. Nothing here can hide content by
+ * failing.
+ * ------------------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .seq-copy-list[data-reveal] > .seq-copy {
+    transition:
+      opacity var(--dur-slow) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+  }
+
+  .seq-copy-list[data-reveal='armed'] > .seq-copy {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .seq-copy-list[data-reveal='shown'] > .seq-copy:nth-child(2) {
+    transition-delay: 70ms;
+  }
+  .seq-copy-list[data-reveal='shown'] > .seq-copy:nth-child(3) {
+    transition-delay: 140ms;
+  }
+  .seq-copy-list[data-reveal='shown'] > .seq-copy:nth-child(4) {
+    transition-delay: 210ms;
+  }
+  .seq-copy-list[data-reveal='shown'] > .seq-copy:nth-child(5) {
+    transition-delay: 280ms;
+  }
+}

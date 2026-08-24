@@ -220,9 +220,12 @@ Rules:
   on the SVG. `canAnimate` is client state, and a stale hot reload can leave it
   true on a phone: an arrow was reported alongside these markers, which a cold
   load cannot produce. Keep both gates.
-- **Each row reveals as it enters the viewport**, via `Reveal`. Its failsafe
-  must stay visibility-checked; a time-based one reveals this whole section
-  ~3000px before it can be seen (CLAUDE.md).
+- **The five rows reveal as ONE group**, from a single observer on the list
+  (`useListReveal`), staggered by CSS `nth-child` transition-delay. Do not give
+  each row its own observer: five independent states produced a real failure on
+  a phone where row 2 was visible and its neighbours blank. Any failsafe stays
+  visibility-checked; a time-based one reveals the section ~3000px before it
+  can be seen (CLAUDE.md).
 
 **A horizontal card row was tried here and withdrawn.** It clipped the peek
 card mid-word, which reads as broken rather than as an affordance; and a
